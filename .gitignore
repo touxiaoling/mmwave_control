@@ -164,3 +164,4 @@ cython_debug/
 .DS_Store
 *_try.py
 !/fmc4030/lib
+!/fmc4030/lib/ubuntu/x64/libFMC4030-Lib.so
