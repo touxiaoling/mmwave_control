@@ -161,7 +161,7 @@ class FMC4030:
         validate_code(rcode)
         return dp
 
-    @validate_call
+    #@validate_call
     def set_device_para(self, para: flib.DevicePara):
         rcode = flib.set_device_para(self.id, byref(para))
         return validate_code(rcode)

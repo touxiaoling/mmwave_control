@@ -117,8 +117,8 @@ write_data_to_485.argtypes = [c_int, c_char_p, c_int]
 read_data_from_485 = flib.FMC4030_Read_Data_From_485
 read_data_from_485.argtypes = [c_int, POINTER(c_char), POINTER(c_int)]
 
-set_fsc_speed = flib.FMC4030_Set_FSC_Speed
-set_fsc_speed.argtypes = [c_int, c_int, c_float]
+# set_fsc_speed = flib.FMC4030_Set_FSC_Speed
+# set_fsc_speed.argtypes = [c_int, c_int, c_float]
 
 line_2axis = flib.FMC4030_Line_2Axis
 line_2axis.argtypes = [c_int, c_uint, c_float, c_float, c_float, c_float, c_float]
