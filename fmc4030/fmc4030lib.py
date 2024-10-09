@@ -68,11 +68,11 @@ def loadlib() -> CDLL:
         case "Linux"|"Darwin":
             from ctypes import cdll
 
-            fmc4030lib = cdll.LoadLibrary(lib_path / "lib/ubuntu/x64/libFMC4030-Lib.so")
+            fmc4030lib = cdll.LoadLibrary(lib_path / "fmc4030_lib/ubuntu/x64/libFMC4030-Lib.so")
         case "Windows":
             from ctypes import windll
 
-            fmc4030lib = windll.LoadLibrary(lib_path / "lib/win/x64/FMC4030-Dll.dll")
+            fmc4030lib = windll.LoadLibrary(lib_path / "fmc4030_lib/win/x64/FMC4030-Dll.dll")
         case _:
             raise ValueError(f"unknow system {platform.system()}")
     return fmc4030lib
