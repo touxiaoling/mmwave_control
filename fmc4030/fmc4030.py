@@ -115,9 +115,7 @@ class FMC4030:
         flib.close_device(self.id)
 
     @validate_call
-    def _jog_single_axis(
-        self, axis: int, pos: float, speed: float, acc: float, dec: float, mode: int
-    ):
+    def _jog_single_axis(self, axis: int, pos: float, speed: float, acc: float, dec: float, mode: int):
         flib.jog_single_axis(self.id, axis, pos, speed, acc, dec, mode)
 
     @validate_call
@@ -142,14 +140,7 @@ class FMC4030:
         self._jog_single_axis(axis, pos, speed, acc, dec, flib.RELATIVE_MOTION)
 
     @validate_call
-    def jog_single_axis_absolute(
-        self,
-        axis: int,
-        pos: float,
-        speed: float = None,
-        acc: float = None,
-        dec: float = None,
-    ):
+    def jog_single_axis_absolute(self, axis: int, pos: float, speed: float = None, acc: float = None, dec: float = None):
         """执行控制器单轴绝对运动，可多次启动不同轴，启动同一轴时若前次运动未完成，则此次指令不响应
         pos:运行的距离，区别正负，单位 mm
         speed:运行的速度，只能为正数，单位 mm/s
@@ -174,12 +165,7 @@ class FMC4030:
 
     @validate_call
     def home_single_axis(
-        self,
-        axis: int,
-        speed: float = None,
-        acc_dec: float = None,
-        fall_step: float = None,
-        dir: int = 1,
+        self, axis: int, speed: float = None, acc_dec: float = None, fall_step: float = None, dir: int = 1
     ) -> bool:
         """
         Speed:回零速度，正数，单位 mm/s
@@ -250,15 +236,7 @@ class FMC4030:
     #     flib.set_fsc_speed(self.id, slave_id, speed)
 
     @validate_call
-    def line_2axis(
-        self,
-        axis: int,
-        end_x: int,
-        end_y: int,
-        speed: float = None,
-        acc: float = None,
-        dec: float = None,
-    ):
+    def line_2axis(self, axis: int, end_x: int, end_y: int, speed: float = None, acc: float = None, dec: float = None):
         """以当前点为起点的两轴直线插补，当前点由控制器内部计数进行控制
         axis：待控制的两个轴，由于本控制器具有三个轴，因此采用 32 位无符号数的低三位来表示选中的轴，0x03 表示 X、Y 轴，0x05 表示 X、Z 轴，0x06 表示 Y、Z 轴
         endX：直线插补终点的 X 坐标，此 X 非实际的 X 轴，为虚拟坐标系的 X，单位 mm
@@ -273,16 +251,7 @@ class FMC4030:
         flib.line_2axis(self.id, axis, end_x, end_y, speed, acc, dec)
 
     @validate_call
-    def line_3axis(
-        self,
-        axis: int,
-        end_x: float,
-        end_y: float,
-        end_z: float,
-        speed: float,
-        acc: float,
-        dec: float,
-    ):
+    def line_3axis(self, axis: int, end_x: float, end_y: float, end_z: float, speed: float, acc: float, dec: float):
         flib.line_3axis(self.id, axis, end_x, end_y, end_z, speed, acc, dec)
 
     @validate_call

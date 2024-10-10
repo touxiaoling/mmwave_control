@@ -22,15 +22,15 @@ MACHINE_LIMIT_P_NONE = 0x0400
 MACHINE_HOME_NONE = 0x0800
 MACHINE_HOME_OVERTIME = 0x1000
 
-AXIS_X=0
-AXIS_Y=1
-AXIS_Z=2
+AXIS_X = 0
+AXIS_Y = 1
+AXIS_Z = 2
 
 RELATIVE_MOTION = 1
 ABSOLUTE_MOTION = 2
 
-P_LIMIT=1
-N_LIMIT=2
+P_LIMIT = 1
+N_LIMIT = 2
 
 
 class MachineStatus(Structure):
@@ -112,7 +112,7 @@ jog_single_axis.errcheck = validate_code
 
 check_axis_is_stop = flib.FMC4030_Check_Axis_Is_Stop
 check_axis_is_stop.argtypes = [c_int, c_int]
-#check_axis_is_stop.errcheck = validate_code
+# check_axis_is_stop.errcheck = validate_code
 
 home_single_axis = flib.FMC4030_Home_Single_Axis
 home_single_axis.argtypes = [c_int, c_int, c_float, c_float, c_float, c_int]
@@ -156,32 +156,11 @@ line_2axis.argtypes = [c_int, c_uint, c_float, c_float, c_float, c_float, c_floa
 line_2axis.errcheck = validate_code
 
 line_3axis = flib.FMC4030_Line_3Axis
-line_3axis.argtypes = [
-    c_int,
-    c_uint,
-    c_float,
-    c_float,
-    c_float,
-    c_float,
-    c_float,
-    c_float,
-]
+line_3axis.argtypes = [c_int, c_uint, c_float, c_float, c_float, c_float, c_float, c_float]
 line_3axis.errcheck = validate_code
 
 arc_2axis = flib.FMC4030_Arc_2Axis
-arc_2axis.argtypes = [
-    c_int,
-    c_uint,
-    c_float,
-    c_float,
-    c_float,
-    c_float,
-    c_float,
-    c_float,
-    c_float,
-    c_float,
-    c_int,
-]
+arc_2axis.argtypes = [c_int, c_uint, c_float, c_float, c_float, c_float, c_float, c_float, c_float, c_float, c_int]
 arc_2axis.errcheck = validate_code
 
 stop_run = flib.FMC4030_Stop_Run
