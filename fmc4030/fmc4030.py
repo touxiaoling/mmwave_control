@@ -1,13 +1,91 @@
 from ctypes import c_float, c_int, byref, create_string_buffer
-from pydantic import validate_call
+from pydantic import validate_call, BaseModel
 from . import fmc4030lib as flib
 
 
-def validate_code(rcode):
-    if rcode == 0:
-        return True
+class MachineStatus(BaseModel):
+    real_pos: tuple[float]
+    real_speed: tuple[float]
+    input_status: int
+    output_status: int
+    limit_n_status: int
+    limit_p_status: int
+    machine_run_status: int
+    axis_status: tuple[int]
+    home_status: int
+    file: str
 
-    raise ValueError(f"error code {rcode}")
+
+class DevicePara(BaseModel):
+    id: int
+    bound232: int
+    bound485: int
+    ip: str
+    port: int
+    div: tuple[int]
+    lead: tuple[int]
+    soft_limit_max: tuple[int]
+    soft_limit_min: tuple[int]
+    home_time: tuple[int]
+
+
+class MachineVersion(BaseModel):
+    firmware: int
+    lib: int
+    serial_number: int
+
+
+def machine_status_turn(cins: flib.MachineStatus):
+    return MachineStatus(
+        real_pos=tuple(i.value for i in cins.realPos),
+        real_speed=tuple(i.value for i in cins.realSpeed),
+        input_status=cins.inputStatus.value,
+        output_status=cins.outputStatus.value,
+        limit_n_status=cins.limitNStatus.value,
+        limit_p_status=cins.limitPStatus.value,
+        machine_run_status=cins.machineRunStatus.value,
+        axis_status=tuple(i.value for i in cins.axisStatus),
+        home_status=cins.homeStatus.value,
+        file=cins.file.decode("utf-8"),
+    )
+
+
+def device_para_turn(cins: flib.DevicePara):
+    return DevicePara(
+        id=cins.id.value,
+        bound232=cins.bound232.value,
+        bound485=cins.bound485.value,
+        ip=cins.ip.decode("utf-8"),
+        port=cins.port.value,
+        div=tuple(i.value for i in cins.div),
+        lead=tuple(i.value for i in cins.lead),
+        soft_limit_max=tuple(i.value for i in cins.softLimitMax),
+        soft_limit_min=tuple(i.value for i in cins.softLimitMin),
+        home_time=tuple(i.value for i in cins.homeTime),
+    )
+
+
+def device_para_return(pins: DevicePara):
+    return flib.DevicePara(
+        id=pins.id,
+        bound232=pins.bound232,
+        bound485=pins.bound485,
+        ip=pins.ip.encode("utf-8"),
+        port=pins.port,
+        div=pins.div,
+        lead=pins.lead,
+        softLimitMax=pins.soft_limit_max,
+        softLimitMin=pins.soft_limit_min,
+        homeTime=pins.home_time,
+    )
+
+
+def machine_version_turn(cins: flib.MachineVersion):
+    return MachineVersion(
+        firmware=cins.firmware.value,
+        lib=cins.lib.value,
+        serial_number=cins.serialNumber.value,
+    )
 
 
 class FMC4030:
@@ -42,7 +120,6 @@ class FMC4030:
     @validate_call
     def stop_single_axis(self, axis: int, mode: int):
         flib.stop_single_axis(self.id, axis, mode)
-
 
     @validate_call
     def get_axis_current_pos(self, axis: int):
@@ -136,14 +213,14 @@ class FMC4030:
     def get_machine_status(self):
         ms = flib.MachineStatus()
         flib.get_machine_status(self.id, byref(ms))
-        return ms
+        return machine_status_turn(ms)
 
     def get_device_para(self):
         dp = flib.DevicePara()
         flib.get_device_para(self.id, byref(dp))
-        return dp
+        return device_para_turn(dp)
 
-    #@validate_call
-    def set_device_para(self, para: flib.DevicePara):
+    @validate_call
+    def set_device_para(self, para: DevicePara):
+        para = device_para_return(para)
         flib.set_device_para(self.id, byref(para))
-

@@ -27,11 +27,11 @@ class MachineStatus(Structure):
     _fields_ = [
         ("realPos", c_float * 3),
         ("realSpeed", c_float * 3),
-        ("inputStatus", c_uint * 1),
-        ("outputStatus", c_uint * 1),
-        ("limitNStatus", c_uint * 1),
-        ("limitPStatus", c_uint * 1),
-        ("machineRunStatus", c_uint * 1),
+        ("inputStatus", c_uint),
+        ("outputStatus", c_uint),
+        ("limitNStatus", c_uint),
+        ("limitPStatus", c_uint),
+        ("machineRunStatus", c_uint),
         ("axisStatus", c_uint * 3),
         ("homeStatus", c_uint * 1),
         ("file", c_char * 600),
@@ -40,11 +40,11 @@ class MachineStatus(Structure):
 
 class DevicePara(Structure):
     _fields_ = [
-        ("id", c_uint * 1),
-        ("bound232", c_uint * 1),
-        ("bound485", c_uint * 1),
+        ("id", c_uint),
+        ("bound232", c_uint),
+        ("bound485", c_uint),
         ("ip", c_char * 15),
-        ("port", c_int * 1),
+        ("port", c_int),
         ("div", c_int * 3),
         ("lead", c_int * 3),
         ("softLimitMax", c_int * 3),
@@ -55,9 +55,9 @@ class DevicePara(Structure):
 
 class MachineVersion(Structure):
     _fields_ = [
-        ("firmware", c_uint * 1),
-        ("lib", c_uint * 1),
-        ("serialnumber", c_uint * 1),
+        ("firmware", c_uint),
+        ("lib", c_uint),
+        ("serialNumber", c_uint),
     ]
 
 
