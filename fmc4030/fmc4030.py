@@ -1,6 +1,10 @@
+import atexit
+import time
 from ctypes import c_float, c_int, byref, create_string_buffer
+from functools import wraps
 from pydantic import validate_call, BaseModel
 from . import fmc4030lib as flib
+
 
 
 class MachineStatus(BaseModel):
@@ -87,6 +91,23 @@ def machine_version_turn(cins: flib.MachineVersion):
         serial_number=cins.serialNumber,
     )
 
+class DelayDecorator:
+    def __init__(self, delay_time):
+        self.delay_time = delay_time
+        self.last_cmd_time = 0
+
+    def __call__(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            sleep_time = self.delay_time - (time.time() - self.last_cmd_time)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+            res = func(*args, **kwargs)
+            self.last_cmd_time = time.time()
+            return res
+        return wrapper
+
+delay_decorator = DelayDecorator(0.001)
 
 class FMC4030:
     def __init__(
@@ -107,17 +128,21 @@ class FMC4030:
         self.acc = acc
         self.dec = dec or acc
         self.fall_step = 5
-        self.home_speed = 50
+        self.home_speed = home_speed
+
 
     def open_device(self):
         ip = self.ip.encode("utf-8")
         flib.open_device(self.id, ip, self.port)
+        atexit.register(self.close_device)
 
+    @delay_decorator
     def close_device(self) -> bool:
         flib.close_device(self.id)
 
-    @validate_call
+    @delay_decorator
     def _jog_single_axis(self, axis: int, pos: float, speed: float, acc: float, dec: float, mode: int):
+        self._cmd_dealy()
         flib.jog_single_axis(self.id, axis, pos, speed, acc, dec, mode)
 
     @validate_call
@@ -156,6 +181,7 @@ class FMC4030:
         self._jog_single_axis(axis, pos, speed, acc, dec, flib.ABSOLUTE_MOTION)
 
     @validate_call
+    @delay_decorator
     def check_axis_is_stop(self, axis: int):
         """检查某轴是否为停止状态，用于判断某轴的运行状态
         返回值：ture 为停止状态
@@ -166,11 +192,13 @@ class FMC4030:
         return bool(res)
     
     @validate_call
+    @delay_decorator
     def wait_axis_stop(self,axis:int):
         while not self.check_axis_is_stop(axis):
             pass
 
     @validate_call
+    @delay_decorator
     def home_single_axis(
         self, axis: int, speed: float = None, acc_dec: float = None, fall_step: float = None, dir: int = 1
     ) -> bool:
@@ -186,6 +214,7 @@ class FMC4030:
         flib.home_single_axis(self.id, axis, speed, acc_dec, fall_step, dir)
 
     @validate_call
+    @delay_decorator
     def stop_single_axis(self, axis: int, force=False):
         """停止某轴运行，此函只能用于启动单轴运行后停止，不能用于插补运动时的停止
         force：立即停止
@@ -194,6 +223,7 @@ class FMC4030:
         flib.stop_single_axis(self.id, axis, mode)
 
     @validate_call
+    @delay_decorator
     def get_axis_current_pos(self, axis: int):
         """获取某轴当前实际位置，此位置为控制卡内部计数产生，若电机发生堵转或卡滞，则此位置不准确"""
         pos = c_float(0)
@@ -201,6 +231,7 @@ class FMC4030:
         return pos.value
 
     @validate_call
+    @delay_decorator
     def get_axis_current_speed(self, axis: int):
         """获取某轴当前运行速度"""
         speed = c_float(0)
@@ -208,6 +239,7 @@ class FMC4030:
         return speed.value
 
     @validate_call
+    @delay_decorator
     def set_output(self, io: int, status: int):
         """设置控制器输出口状态，此输出口为开漏输出，可接大功率继电器等设备。
         io：0、1、2、3 分别对应 OUT0、OUT1、OUT2、OUT3
@@ -216,6 +248,7 @@ class FMC4030:
         flib.set_output(self.id, io, status)
 
     @validate_call
+    @delay_decorator
     def get_input(self, io: int):
         """获取输入口状态
         id：分配给控制器的 id 号
@@ -226,12 +259,14 @@ class FMC4030:
         return status.value
 
     @validate_call
+    @delay_decorator
     def write_data_to_485(self, data: str):
         data = data.encode("utf-8")
         length = len(data)
         flib.write_data_to_485(self.id, data, length)
 
     @validate_call
+    @delay_decorator
     def read_data_from_485(self):
         data = create_string_buffer(100)
         length = c_int(0)
@@ -243,6 +278,7 @@ class FMC4030:
     #     flib.set_fsc_speed(self.id, slave_id, speed)
 
     @validate_call
+    @delay_decorator
     def line_2axis(self, axis: int, end_x: int, end_y: int, speed: float = None, acc: float = None, dec: float = None):
         """以当前点为起点的两轴直线插补，当前点由控制器内部计数进行控制
         axis：待控制的两个轴，由于本控制器具有三个轴，因此采用 32 位无符号数的低三位来表示选中的轴，0x03 表示 X、Y 轴，0x05 表示 X、Z 轴，0x06 表示 Y、Z 轴
@@ -258,10 +294,12 @@ class FMC4030:
         flib.line_2axis(self.id, axis, end_x, end_y, speed, acc, dec)
 
     @validate_call
+    @delay_decorator
     def line_3axis(self, axis: int, end_x: float, end_y: float, end_z: float, speed: float, acc: float, dec: float):
         flib.line_3axis(self.id, axis, end_x, end_y, end_z, speed, acc, dec)
 
     @validate_call
+    @delay_decorator
     def arc_2axis(
         self,
         axis: int,
@@ -289,16 +327,19 @@ class FMC4030:
             dir,
         )
 
+    @delay_decorator
     def stop_run(self):
         """停止插补运动，包括直线插补与圆弧插补"""
         flib.stop_run(self.id)
 
+    @delay_decorator
     def get_machine_status(self):
         """取设备状态及运行参数，参数包含三轴位置，三轴速度，回零状态，输入状态，设备序列号等等"""
         ms = flib.MachineStatus()
         flib.get_machine_status(self.id, byref(ms))
         return machine_status_turn(ms)
 
+    @delay_decorator
     def get_device_para(self):
         """取设备设置参数及各轴设置参数，包含 ip，端口号，导程、细分等参数"""
         dp = flib.DevicePara()
@@ -306,6 +347,7 @@ class FMC4030:
         return device_para_turn(dp)
 
     @validate_call
+    @delay_decorator
     def set_device_para(self, para: DevicePara):
         """设置设备参数及各轴参数，请勿随意修改，避免造成设备运行错误致设备损坏"""
         para = device_para_return(para)
