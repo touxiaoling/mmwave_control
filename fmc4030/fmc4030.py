@@ -52,16 +52,16 @@ def machine_status_turn(cins: flib.MachineStatus):
 
 def device_para_turn(cins: flib.DevicePara):
     return DevicePara(
-        id=cins.id.value,
-        bound232=cins.bound232.value,
-        bound485=cins.bound485.value,
+        id=cins.id,
+        bound232=cins.bound232,
+        bound485=cins.bound485,
         ip=cins.ip.decode("utf-8"),
-        port=cins.port.value,
-        div=tuple(i.value for i in cins.div),
-        lead=tuple(i.value for i in cins.lead),
-        soft_limit_max=tuple(i.value for i in cins.softLimitMax),
-        soft_limit_min=tuple(i.value for i in cins.softLimitMin),
-        home_time=tuple(i.value for i in cins.homeTime),
+        port=cins.port,
+        div=tuple(cins.div),
+        lead=tuple(cins.lead),
+        soft_limit_max=tuple(cins.softLimitMax),
+        soft_limit_min=tuple(cins.softLimitMin),
+        home_time=tuple(cins.homeTime),
     )
 
 
