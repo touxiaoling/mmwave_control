@@ -22,11 +22,11 @@ class DevicePara(BaseModel):
     bound485: int
     ip: str
     port: int
-    div: tuple[int]
-    lead: tuple[int]
-    soft_limit_max: tuple[int]
-    soft_limit_min: tuple[int]
-    home_time: tuple[int]
+    div: tuple[int, int, int]
+    lead: tuple[int, int, int]
+    soft_limit_max: tuple[int, int, int]
+    soft_limit_min: tuple[int, int, int]
+    home_time: tuple[int, int, int]
 
 
 class MachineVersion(BaseModel):
