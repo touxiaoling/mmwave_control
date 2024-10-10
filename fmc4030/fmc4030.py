@@ -191,7 +191,6 @@ class FMC4030:
         return bool(res)
     
     @validate_call
-    @delay_decorator
     def wait_axis_stop(self,axis:int):
         while not self.check_axis_is_stop(axis):
             pass
