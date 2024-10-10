@@ -124,6 +124,10 @@ class FMC4030:
     @util.min_delay
     def close_device(self) -> bool:
         if self._connect_state:
+            self.jog_single_axis_absolute(0,0,200)
+            self.jog_single_axis_absolute(1,0,100)
+            self.wait_axis_stop(0)
+            self.wait_axis_stop(1)
             flib.close_device(self.id)
             self._connect_state=False
 
