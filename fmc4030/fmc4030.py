@@ -115,15 +115,20 @@ class FMC4030:
         self.dec = dec or acc
         self.fall_step = 5
         self.home_speed = home_speed
+        
+        self._connect_state=False
 
     def open_device(self):
         ip = self.ip.encode("utf-8")
         flib.open_device(self.id, ip, self.port)
         atexit.register(self.close_device)
+        self._connect_state=True
 
     @delay_decorator
     def close_device(self) -> bool:
-        flib.close_device(self.id)
+        if self._connect_state:
+            flib.close_device(self.id)
+            self._connect_state=False
 
     @delay_decorator
     def _jog_single_axis(self, axis: int, pos: float, speed: float, acc: float, dec: float, mode: int):
@@ -296,19 +301,7 @@ class FMC4030:
         dec: float,
         dir: float,
     ):
-        flib.arc_2axis(
-            self.id,
-            axis,
-            end_x,
-            end_y,
-            center_x,
-            center_y,
-            radius,
-            speed,
-            acc,
-            dec,
-            dir,
-        )
+        flib.arc_2axis(self.id, axis, end_x, end_y, center_x, center_y, radius, speed, acc, dec, dir)
 
     @delay_decorator
     def stop_run(self):
