@@ -89,10 +89,22 @@ def machine_version_turn(cins: flib.MachineVersion):
 
 
 class FMC4030:
-    def __init__(self, ip: str = "192.168.0.30", port=8088, id=0):
+    def __init__(
+        self,
+        ip: str = "192.168.0.30",
+        port=8088,
+        id=0,
+        speed: float = 200,
+        acc: float = 200,
+        dec: float = None,
+    ):
         self.ip = ip
         self.port = port
         self.id = id
+
+        self.speed = speed
+        self.acc = acc
+        self.dec = dec or acc
 
     def open_device(self):
         ip = self.ip.encode("utf-8")
@@ -104,8 +116,45 @@ class FMC4030:
     @validate_call
     def jog_single_axis(
         self, axis: int, pos: float, speed: float, acc: float, dec: float, mode: int
-    ) -> bool:
+    ):
+        """
+        pos:运行的距离，区别正负，单位 mm
+        speed:运行的速度，只能为正数，单位 mm/s
+        acc:运行的加速度，只能为正数，单位 mm/s²
+        dec:运行的减速度，只能为正数，单位 mm/s²
+        mode:运行模式。1：相对运动，2：绝对运动
+        """
         flib.jog_single_axis(self.id, axis, pos, speed, acc, dec, mode)
+
+    @validate_call
+    def jog_single_axis_relative(
+        self,
+        axis: int,
+        pos: float,
+        speed: float = None,
+        acc: float = None,
+        dec: float = None,
+    ):
+        speed = speed or self.speed
+        acc = acc or self.acc
+        dec = dec or self.dec
+
+        self.jog_single_axis(axis, pos, speed, acc, dec, flib.RELATIVE_MOTION)
+
+    @validate_call
+    def jog_single_axis_absolute(
+        self,
+        axis: int,
+        pos: float,
+        speed: float = None,
+        acc: float = None,
+        dec: float = None,
+    ):
+        speed = speed or self.speed
+        acc = acc or self.acc
+        dec = dec or self.dec
+
+        self.jog_single_axis(axis, pos, speed, acc, dec, flib.ABSOLUTE_MOTION)
 
     @validate_call
     def check_axis_is_stop(self, axis: int):
