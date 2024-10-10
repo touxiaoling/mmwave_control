@@ -61,10 +61,10 @@ class FMC4030:
         flib.set_output(self.id, io, status)
 
     @validate_call
-    def get_input(self, io: int, status: int):
+    def get_input(self, io: int):
         status = c_int(0)
         flib.get_input(self.id, io, byref(status))
-        return status
+        return status.value
 
     @validate_call
     def write_data_to_485(self, data: str):
