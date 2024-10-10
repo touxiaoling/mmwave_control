@@ -33,7 +33,7 @@ class MachineStatus(Structure):
         ("limitPStatus", c_uint),
         ("machineRunStatus", c_uint),
         ("axisStatus", c_uint * 3),
-        ("homeStatus", c_uint * 1),
+        ("homeStatus", c_uint),
         ("file", c_char * 600),
     ]
 
