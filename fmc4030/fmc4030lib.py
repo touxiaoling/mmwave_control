@@ -112,7 +112,7 @@ jog_single_axis.errcheck = validate_code
 
 check_axis_is_stop = flib.FMC4030_Check_Axis_Is_Stop
 check_axis_is_stop.argtypes = [c_int, c_int]
-check_axis_is_stop.errcheck = validate_code
+#check_axis_is_stop.errcheck = validate_code
 
 home_single_axis = flib.FMC4030_Home_Single_Axis
 home_single_axis.argtypes = [c_int, c_int, c_float, c_float, c_float, c_int]
