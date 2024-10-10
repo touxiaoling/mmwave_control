@@ -6,7 +6,6 @@ from pydantic import validate_call, BaseModel
 from . import fmc4030lib as flib
 
 
-
 class MachineStatus(BaseModel):
     real_pos: tuple[float, float, float]
     real_speed: tuple[float, float, float]
@@ -91,23 +90,30 @@ def machine_version_turn(cins: flib.MachineVersion):
         serial_number=cins.serialNumber,
     )
 
+
 class DelayDecorator:
     def __init__(self, delay_time):
         self.delay_time = delay_time
-        self.last_cmd_time = 0
+        self.next_time_lock = 0
 
     def __call__(self, func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            sleep_time = self.delay_time - (time.time() - self.last_cmd_time)
+            sleep_time = self.next_time_lock - time.monotonic()
             if sleep_time > 0:
                 time.sleep(sleep_time)
+
             res = func(*args, **kwargs)
-            self.last_cmd_time = time.time()
+
+            self.next_time_lock = time.monotonic() + self.delay_time
+
             return res
+
         return wrapper
 
+
 delay_decorator = DelayDecorator(0.001)
+
 
 class FMC4030:
     def __init__(
@@ -118,7 +124,7 @@ class FMC4030:
         speed: float = 200,
         acc: float = 200,
         dec: float = None,
-        home_speed:float = 50
+        home_speed: float = 50,
     ):
         self.ip = ip
         self.port = port
@@ -129,7 +135,6 @@ class FMC4030:
         self.dec = dec or acc
         self.fall_step = 5
         self.home_speed = home_speed
-
 
     def open_device(self):
         ip = self.ip.encode("utf-8")
@@ -189,9 +194,9 @@ class FMC4030:
         if res != 0 and res != 1:
             raise ValueError(f"axis stop check error,return code {res}")
         return bool(res)
-    
+
     @validate_call
-    def wait_axis_stop(self,axis:int):
+    def wait_axis_stop(self, axis: int):
         while not self.check_axis_is_stop(axis):
             pass
 
