@@ -4,14 +4,14 @@ from . import fmc4030lib as flib
 
 
 class MachineStatus(BaseModel):
-    real_pos: tuple[float]
-    real_speed: tuple[float]
+    real_pos: tuple[float, float, float]
+    real_speed: tuple[float, float, float]
     input_status: int
     output_status: int
     limit_n_status: int
     limit_p_status: int
     machine_run_status: int
-    axis_status: tuple[int]
+    axis_status: tuple[int, int, int]
     home_status: int
     file: str
 
@@ -37,15 +37,15 @@ class MachineVersion(BaseModel):
 
 def machine_status_turn(cins: flib.MachineStatus):
     return MachineStatus(
-        real_pos=tuple(i.value for i in cins.realPos),
-        real_speed=tuple(i.value for i in cins.realSpeed),
-        input_status=cins.inputStatus.value,
-        output_status=cins.outputStatus.value,
-        limit_n_status=cins.limitNStatus.value,
-        limit_p_status=cins.limitPStatus.value,
-        machine_run_status=cins.machineRunStatus.value,
-        axis_status=tuple(i.value for i in cins.axisStatus),
-        home_status=cins.homeStatus.value,
+        real_pos=cins.realPos,
+        real_speed=cins.realSpeed,
+        input_status=cins.inputStatus,
+        output_status=cins.outputStatus,
+        limit_n_status=cins.limitNStatus,
+        limit_p_status=cins.limitPStatus,
+        machine_run_status=cins.machineRunStatus,
+        axis_status=cins.axisStatus,
+        home_status=cins.homeStatus,
         file=cins.file.decode("utf-8"),
     )
 
@@ -82,9 +82,9 @@ def device_para_return(pins: DevicePara):
 
 def machine_version_turn(cins: flib.MachineVersion):
     return MachineVersion(
-        firmware=cins.firmware.value,
-        lib=cins.lib.value,
-        serial_number=cins.serialNumber.value,
+        firmware=cins.firmware,
+        lib=cins.lib,
+        serial_number=cins.serialNumber,
     )
 
 
