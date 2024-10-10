@@ -57,11 +57,11 @@ def device_para_turn(cins: flib.DevicePara):
         bound485=cins.bound485,
         ip=cins.ip.decode("utf-8"),
         port=cins.port,
-        div=tuple(cins.div),
-        lead=tuple(cins.lead),
-        soft_limit_max=tuple(cins.softLimitMax),
-        soft_limit_min=tuple(cins.softLimitMin),
-        home_time=tuple(cins.homeTime),
+        div=cins.div,
+        lead=cins.lead,
+        soft_limit_max=cins.softLimitMax,
+        soft_limit_min=cins.softLimitMin,
+        home_time=cins.homeTime,
     )
 
 
