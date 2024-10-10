@@ -142,7 +142,6 @@ class FMC4030:
 
     @delay_decorator
     def _jog_single_axis(self, axis: int, pos: float, speed: float, acc: float, dec: float, mode: int):
-        self._cmd_dealy()
         flib.jog_single_axis(self.id, axis, pos, speed, acc, dec, mode)
 
     @validate_call
