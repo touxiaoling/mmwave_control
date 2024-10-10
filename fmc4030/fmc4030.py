@@ -97,6 +97,7 @@ class FMC4030:
         speed: float = 200,
         acc: float = 200,
         dec: float = None,
+        home_speed:float = 50
     ):
         self.ip = ip
         self.port = port
@@ -106,6 +107,7 @@ class FMC4030:
         self.acc = acc
         self.dec = dec or acc
         self.fall_step = 5
+        self.home_speed = 50
 
     def open_device(self):
         ip = self.ip.encode("utf-8")
@@ -162,6 +164,11 @@ class FMC4030:
         if res != 0 and res != 1:
             raise ValueError(f"axis stop check error,return code {res}")
         return bool(res)
+    
+    @validate_call
+    def wait_axis_stop(self,axis:int):
+        while not self.check_axis_is_stop(axis):
+            pass
 
     @validate_call
     def home_single_axis(
@@ -173,7 +180,7 @@ class FMC4030:
         FallStep:回零脱落距离，正数，单位 mm。此参数为回零完成后远离限位开关的距离。
         eDir:回零方向，1：正限位回零，2：负限位回零
         """
-        speed = speed or self.speed
+        speed = speed or self.home_speed
         acc_dec = acc_dec or self.acc
         fall_step = fall_step or self.fall_step
         flib.home_single_axis(self.id, axis, speed, acc_dec, fall_step, dir)
