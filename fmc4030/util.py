@@ -2,21 +2,20 @@ import time
 from functools import wraps
 
 
-next_time_lock = 0
+def min_delay(min_delay_time=0.001):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            sleep_time = self._next_time_lock - time.monotonic()
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
+            res = func(self, *args, **kwargs)
 
-def min_delay(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        global next_time_lock
-        sleep_time = next_time_lock - time.monotonic()
-        if sleep_time > 0:
-            time.sleep(sleep_time)
+            self._next_time_lock = time.monotonic() + min_delay_time
 
-        res = func(*args, **kwargs)
+            return res
 
-        next_time_lock = time.monotonic() + 0.001
+        return wrapper
 
-        return res
-
-    return wrapper
+    return decorator
