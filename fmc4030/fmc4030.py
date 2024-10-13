@@ -106,6 +106,12 @@ class FMC4030:
         self.connected = False
         self._next_time_lock = 0
 
+        self._dp = flib.DevicePara()
+        self._ms = flib.MachineStatus()
+        self._mv = flib.MachineVersion()
+        self._pos = flib.c_float(0)
+        self._speed = flib.c_float(0)
+
     def open_device(self):
         ip = self.ip.encode("utf-8")
         flib.open_device(self.id, ip, self.port)
@@ -183,7 +189,7 @@ class FMC4030:
     @util.min_delay()
     def get_axis_current_pos(self, axis: int):
         """获取某轴当前实际位置，此位置为控制卡内部计数产生，若电机发生堵转或卡滞，则此位置不准确"""
-        pos = c_float(0)
+        pos = self._pos
         flib.get_axis_current_pos(self.id, axis, byref(pos))
         return pos.value
 
@@ -191,7 +197,7 @@ class FMC4030:
     @util.min_delay()
     def get_axis_current_speed(self, axis: int):
         """获取某轴当前运行速度"""
-        speed = c_float(0)
+        speed = self._speed
         flib.get_axis_current_speed(self.id, axis, byref(speed))
         return speed.value
 
@@ -277,14 +283,14 @@ class FMC4030:
     @util.min_delay()
     def get_machine_status(self):
         """取设备状态及运行参数，参数包含三轴位置，三轴速度，回零状态，输入状态，设备序列号等等"""
-        ms = flib.MachineStatus()
+        ms = self._ms
         flib.get_machine_status(self.id, byref(ms))
         return machine_status_turn(ms)
 
     @util.min_delay()
     def get_device_para(self):
         """取设备设置参数及各轴设置参数，包含 ip，端口号，导程、细分等参数"""
-        dp = flib.DevicePara()
+        dp = self._dp
         flib.get_device_para(self.id, byref(dp))
         return device_para_turn(dp)
 
