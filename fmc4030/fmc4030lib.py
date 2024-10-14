@@ -3,6 +3,7 @@ from ctypes import CDLL
 import platform
 from pathlib import Path
 
+# @machine_status.machineRunStatus
 MACHINE_MANUAL = 0x0001
 MACHINE_AUTO = 0x0002
 
