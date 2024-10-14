@@ -1,3 +1,4 @@
+import time
 import atexit
 from ctypes import c_float, c_int, byref, create_string_buffer
 from threading import Lock
@@ -177,6 +178,7 @@ class FMC4030:
         eDir:回零方向，1：正限位回零，2：负限位回零
         """
         flib.home_single_axis(self.id, axis, speed, acc_dec, fall_step, dir)
+        time.sleep(0.005)
 
     @validate_call
     @util.min_delay()
