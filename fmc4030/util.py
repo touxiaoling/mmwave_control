@@ -1,6 +1,5 @@
 import time
 from functools import wraps
-from threading import Lock
 
 def min_delay(min_delay_time=0.001):
     def decorator(func):
