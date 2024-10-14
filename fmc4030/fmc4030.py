@@ -274,6 +274,18 @@ class FMC4030:
     ):
         flib.arc_2axis(self.id, axis, end_x, end_y, center_x, center_y, radius, speed, acc, dec, dir)
 
+    @validate_call
+    @util.min_delay()
+    def pause_run(self, axis: int):
+        """暂停插补运动，包括直线插补与圆弧插补"""
+        flib.pause_run(self.id, axis)
+
+    @validate_call
+    @util.min_delay()
+    def resume_run(self, axis: int):
+        """继续插补运动，包括直线插补与圆弧插补"""
+        flib.resume_run(self.id, axis)
+
     @util.min_delay()
     def stop_run(self):
         """停止插补运动，包括直线插补与圆弧插补"""
@@ -299,3 +311,11 @@ class FMC4030:
         """设置设备参数及各轴参数，请勿随意修改，避免造成设备运行错误致设备损坏"""
         para = device_para_return(para)
         flib.set_device_para(self.id, byref(para))
+
+    @validate_call
+    @util.min_delay()
+    def get_version_info(self):
+        """获取设备版本信息，包含固件版本，库版本，序列号"""
+        mv = self._mv
+        flib.get_version_info(self.id, byref(mv))
+        return machine_version_turn(mv)
