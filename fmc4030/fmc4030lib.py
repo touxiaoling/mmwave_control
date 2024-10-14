@@ -89,10 +89,10 @@ def loadlib() -> CDLL:
 
 
 def validate_code(rcode, func, arguments):
-    if rcode == 0:
-        return True
-
-    raise ValueError(f"error code {rcode}")
+    if -6 <= rcode <= -1:
+        raise ValueError(f"error code {rcode}")
+    
+    return True
 
 
 flib = loadlib()
@@ -112,7 +112,7 @@ jog_single_axis.errcheck = validate_code
 
 check_axis_is_stop = flib.FMC4030_Check_Axis_Is_Stop
 check_axis_is_stop.argtypes = [c_int, c_int]
-# check_axis_is_stop.errcheck = validate_code
+check_axis_is_stop.errcheck = validate_code
 
 home_single_axis = flib.FMC4030_Home_Single_Axis
 home_single_axis.argtypes = [c_int, c_int, c_float, c_float, c_float, c_int]
@@ -125,7 +125,6 @@ stop_single_axis.errcheck = validate_code
 get_axis_current_pos = flib.FMC4030_Get_Axis_Current_Pos
 get_axis_current_pos.argtypes = [c_int, c_int, POINTER(c_float)]
 get_axis_current_pos.errcheck = validate_code
-
 
 get_axis_current_speed = flib.FMC4030_Get_Axis_Current_Speed
 get_axis_current_speed.argtypes = [c_int, c_int, POINTER(c_float)]
