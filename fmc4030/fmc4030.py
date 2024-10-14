@@ -124,12 +124,11 @@ class FMC4030:
             flib.close_device(self.id)
             self.connected = False
 
-    @util.min_delay
+    @util.min_delay()
     def _jog_single_axis(self, axis: int, pos: float, speed: float, acc: float, dec: float, mode: int):
         flib.jog_single_axis(self.id, axis, pos, speed, acc, dec, mode)
 
     @validate_call
-    @util.min_delay()
     def jog_single_axis_relative(self, axis: int, pos: float, speed: float, acc: float, dec: float):
         """执行控制器单轴相对运动，可多次启动不同轴，启动同一轴时若前次运动未完成，则此次指令不响应
         pos:运行的距离，区别正负，单位 mm

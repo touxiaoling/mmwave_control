@@ -1,4 +1,4 @@
-from ctypes import Structure, c_float, c_int, c_uint, c_char, c_char_p, POINTER
+from ctypes import Structure, c_float, c_int, c_uint, c_ushort, c_char, c_char_p, POINTER
 from ctypes import CDLL
 import platform
 from pathlib import Path
@@ -151,6 +151,26 @@ read_data_from_485.errcheck = validate_code
 # set_fsc_speed.argtypes = [c_int, c_int, c_float]
 # set_fsc_speed.errcheck=validate_code
 
+mb01_operation = flib.FMC4030_MB01_Operation
+mb01_operation.argtypes = [c_int, c_int, c_ushort, c_char_p, POINTER(c_int)]
+mb01_operation.errcheck = validate_code
+
+mb03_operation = flib.FMC4030_MB03_Operation
+mb03_operation.argtypes = [c_int, c_int, c_ushort, c_int, c_char_p, POINTER(c_int)]
+mb03_operation.errcheck = validate_code
+
+mb05_operation = flib.FMC4030_MB05_Operation
+mb05_operation.argtypes = [c_int, c_int, c_ushort, c_ushort, c_char_p, POINTER(c_int)]
+mb05_operation.errcheck = validate_code
+
+mb06_operation = flib.FMC4030_MB06_Operation
+mb06_operation.argtypes = [c_int, c_int, c_ushort, c_ushort, c_char_p, POINTER(c_int)]
+mb06_operation.errcheck = validate_code
+
+mb16_operation = flib.FMC4030_MB16_Operation
+mb16_operation.argtypes = [c_int, c_int, c_ushort, c_int, POINTER(c_ushort), c_char_p, POINTER(c_int)]
+mb16_operation.errcheck = validate_code
+
 line_2axis = flib.FMC4030_Line_2Axis
 line_2axis.argtypes = [c_int, c_uint, c_float, c_float, c_float, c_float, c_float]
 line_2axis.errcheck = validate_code
@@ -162,6 +182,14 @@ line_3axis.errcheck = validate_code
 arc_2axis = flib.FMC4030_Arc_2Axis
 arc_2axis.argtypes = [c_int, c_uint, c_float, c_float, c_float, c_float, c_float, c_float, c_float, c_float, c_int]
 arc_2axis.errcheck = validate_code
+
+pause_run = flib.FMC4030_Pause_Run
+pause_run.argtypes = [c_int, c_uint]
+pause_run.errcheck = validate_code
+
+resume_run = flib.FMC4030_Resume_Run
+resume_run.argtypes = [c_int, c_uint]
+resume_run.errcheck = validate_code
 
 stop_run = flib.FMC4030_Stop_Run
 stop_run.argtypes = [c_int]
@@ -178,3 +206,23 @@ get_device_para.errcheck = validate_code
 set_device_para = flib.FMC4030_Set_Device_Para
 set_device_para.argtypes = [c_int, POINTER(DevicePara)]
 set_device_para.errcheck = validate_code
+
+get_version_info = flib.FMC4030_Get_Version_Info
+get_version_info.argtypes = [c_int, POINTER(MachineVersion)]
+get_version_info.errcheck = validate_code
+
+download_file = flib.FMC4030_Download_File
+download_file.argtypes = [c_int, c_char_p, c_int]
+download_file.errcheck = validate_code
+
+start_auto_run = flib.FMC4030_Start_Auto_Run
+start_auto_run.argtypes = [c_int, c_char_p]
+start_auto_run.errcheck = validate_code
+
+stop_auto_run = flib.FMC4030_Stop_Auto_Run
+stop_auto_run.argtypes = [c_int]
+stop_auto_run.errcheck = validate_code
+
+delete_script_file = flib.FMC4030_Delete_Script_File
+delete_script_file.argtypes = [c_int, c_char_p]
+delete_script_file.errcheck = validate_code
