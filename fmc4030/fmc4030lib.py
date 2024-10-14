@@ -93,7 +93,7 @@ def validate_code(rcode, func, arguments):
     if -6 <= rcode <= -1:
         raise ValueError(f"error code {rcode}")
     
-    return True
+    return rcode
 
 
 flib = loadlib()
