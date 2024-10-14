@@ -1,5 +1,6 @@
 import atexit
 from ctypes import c_float, c_int, byref, create_string_buffer
+from threading import Lock
 
 from pydantic import validate_call, BaseModel
 
@@ -104,7 +105,9 @@ class FMC4030:
         self.id = id
 
         self.connected = False
-        self._next_time_lock = 0
+
+        self._next_time = 0
+        self._next_time_lock = Lock()
 
         self._dp = flib.DevicePara()
         self._ms = flib.MachineStatus()
