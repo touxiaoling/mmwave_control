@@ -3,225 +3,189 @@
 #define _FMC4030_DLL_H_
 
 #ifdef FMC4030_DLL
-#define FMC4030_API  __declspec(dllexport) __stdcall
 #else
-#define FMC4030_API  __declspec(dllimport) __stdcall
+#define FMC4030_API  __declspec(dllexport) __stdcall
 #endif
 
-/* ×î´óÖáÊı3£¬´ËÊıÇëÎğĞŞ¸Ä£¬»áÔì³ÉÊı¾İ´íÂÒµ¼ÖÂ³ÌĞò±ÀÀ£ */
+/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½3ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ş¸Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ´ï¿½ï¿½Òµï¿½ï¿½Â³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 #define MAX_AXIS                     3
 
-/* Éè±¸×´Ì¬@machine_status.machineRunStatus */
-#define MACHINE_MANUAL                     0x0001     //Éè±¸´¦ÓÚÊÖ¶¯Ä£Ê½
-#define MACHINE_AUTO                       0x0002     //Éè±¸´¦ÓÚÔËĞĞ½Å±¾Ä£Ê½
+/* ï¿½è±¸×´Ì¬@machine_status.machineRunStatus */
+#define MACHINE_MANUAL                     0x0001     //ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½Ö¶ï¿½Ä£Ê½
+#define MACHINE_AUTO                       0x0002     //ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ½Å±ï¿½Ä£Ê½
 
-/* ¸÷Öá×´Ì¬@machine_status.axisStatus */
-#define MACHINE_POWER_ON                   0x0000     //ÎŞÒâÒå
-#define MACHINE_RUNNING                    0x0001     //ÖáÕıÔÚÔËĞĞ
-#define MACHINE_PAUSE                      0x0002     //ÖáÔİÍ£ÔËĞĞ
-#define MACHINE_RESUME                     0x0004     //ÎŞ
-#define MACHINE_STOP                       0x0008     //ÖáÍ£Ö¹ÔËĞĞ
-#define MACHINE_LIMIT_N                    0x0010     //¸ºÏŞÎ»´¥·¢
-#define MACHINE_LIMIT_P                    0x0020	  //ÕıÏŞÎ»´¥·¢
-#define MACHINE_HOME_DONE                  0x0040     //Öá»ØÁãÍê³É
-#define MACHINE_HOME                       0x0080     //Öá»ØÁãÖĞ
-#define MACHINE_AUTO_RUN                   0x0100     //ÎŞ
-#define MACHINE_LIMIT_N_NONE               0x0200     //¸ºÏŞÎ»Î´´¥·¢
-#define MACHINE_LIMIT_P_NONE               0x0400     //ÕıÏŞÎ»Î´´¥·¢
-#define MACHINE_HOME_NONE                  0x0800     //Î´»ØÁã
-#define MACHINE_HOME_OVERTIME              0x1000     //»ØÁã³¬Ê±
+/* ï¿½ï¿½ï¿½ï¿½×´Ì¬@machine_status.axisStatus */                      
+#define MACHINE_POWER_ON                   0x0000     //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#define MACHINE_RUNNING                    0x0001     //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#define MACHINE_PAUSE                      0x0002     //ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½
+#define MACHINE_RESUME                     0x0004     //ï¿½ï¿½
+#define MACHINE_STOP                       0x0008     //ï¿½ï¿½Í£Ö¹ï¿½ï¿½ï¿½ï¿½
+#define MACHINE_LIMIT_N                    0x0010     //ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½
+#define MACHINE_LIMIT_P                    0x0020	  //ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½
+#define MACHINE_HOME_DONE                  0x0040     //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#define MACHINE_HOME                       0x0080     //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#define MACHINE_AUTO_RUN                   0x0100     //ï¿½ï¿½
+#define MACHINE_LIMIT_N_NONE               0x0200     //ï¿½ï¿½ï¿½ï¿½Î»Î´ï¿½ï¿½ï¿½ï¿½
+#define MACHINE_LIMIT_P_NONE               0x0400     //ï¿½ï¿½ï¿½ï¿½Î»Î´ï¿½ï¿½ï¿½ï¿½
+#define MACHINE_HOME_NONE                  0x0800     //Î´ï¿½ï¿½ï¿½ï¿½
+#define MACHINE_HOME_OVERTIME              0x1000     //ï¿½ï¿½ï¿½ã³¬Ê±
 
 struct machine_status{
-    float realPos[MAX_AXIS];                          //µ±Ç°¸÷ÖáÊµÊ±Î»ÖÃ
-    float realSpeed[MAX_AXIS];                        //µ±Ç°¸÷ÖáÊµÊ±ËÙ¶È
-    unsigned int inputStatus;                         //ÊäÈë×´Ì¬
-    unsigned int outputStatus;                        //Êä³ö×´Ì¬
-    unsigned int limitNStatus;                        //¸ºÏŞÎ»×´Ì¬
-    unsigned int limitPStatus;                        //ÕıÏŞÎ»×´Ì¬
-    unsigned int machineRunStatus;                    //Éè±¸ÔËĞĞ×´Ì¬
-    unsigned int axisStatus[MAX_AXIS];                //Öá×´Ì¬
-    unsigned int homeStatus;                          //»ØÁã×´Ì¬£¬Î´Ê¹ÓÃ£¬Í¨¹ıÖá×´Ì¬À´»ñÈ¡»ØÁã×´Ì¬
-    char file[20][30];                                //¿ØÖÆÆ÷ÄÚ³ÌĞòÎÄ¼ş£¬ÖÁ¶à20¸öÎÄ¼ş
-    //char currentRunFile[30];                          //µ±Ç°ÕıÔÚÔËĞĞµÄÎÄ¼ş
-    //int currentRunLine;                               //µ±Ç°ÔËĞĞ³ÌĞòËù´¦µÄĞĞºÅ
+	float realPos[MAX_AXIS];
+	float realSpeed[MAX_AXIS];
+	unsigned int inputStatus;
+	unsigned int outputStatus;
+	unsigned int limitNStatus;
+	unsigned int limitPStatus;
+	unsigned int machineRunStatus;
+	unsigned int axisStatus[MAX_AXIS];
+	unsigned int homeStatus;
+	char file[20][30];
 };
 
 struct machine_device_para{
-    unsigned int id;
-    unsigned int bound232;
-    unsigned int bound485;
-    char ip[15];
-    int port;
-
-    int div[MAX_AXIS];
-    int lead[MAX_AXIS];
-    int softLimitMax[MAX_AXIS];
-    int softLimitMin[MAX_AXIS];
-    int homeTime[MAX_AXIS];
+	unsigned int id;
+	unsigned int bound232;
+	unsigned int bound485;
+	char ip[15];
+	int port;
+	
+	int div[MAX_AXIS];
+	int lead[MAX_AXIS];
+	int softLimitMax[MAX_AXIS];
+	int softLimitMin[MAX_AXIS];
+	int homeTime[MAX_AXIS];
 };
 
 struct machine_version{
-    unsigned int firmware;
-    unsigned int lib;
-    unsigned int serialnumber;
+	unsigned int firmware;
+	unsigned int lib;
+	unsigned int serialnumber;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Éè±¸´ò¿ªÓë¹Ø±ÕÏà¹Øº¯Êı */
-int FMC4030_API FMC4030_Open_Device(int id, char* ip, int port);
-int FMC4030_API FMC4030_Close_Device(int id);
+/* ï¿½è±¸ï¿½ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½Øºï¿½ï¿½ï¿½ */
+int FMC4030_Open_Device(int id, char* ip, int port);
+int FMC4030_Close_Device(int id);
 
-/* µ¥ÖáÔË¶¯ÓëÖá×´Ì¬¼ì²éÏà¹Øº¯Êı */
-int FMC4030_API FMC4030_Jog_Single_Axis(int id, int axis, float pos, float speed, float acc, float dec, int mode);
-int FMC4030_API FMC4030_Check_Axis_Is_Stop(int id, int axis);
-int FMC4030_API FMC4030_Home_Single_Axis(int id, int axis, float homeSpeed, float homeAccDec, float homeFallStep, int homeDir);
-int FMC4030_API FMC4030_Stop_Single_Axis(int id, int axis, int mode);
-int FMC4030_API FMC4030_Get_Axis_Current_Pos(int id, int axis, float* pos);
-int FMC4030_API FMC4030_Get_Axis_Current_Speed(int id, int axis, float* speed);
+/* ï¿½ï¿½ï¿½ï¿½ï¿½Ë¶ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½Øºï¿½ï¿½ï¿½ */
+int FMC4030_Jog_Single_Axis(int id, int axis, float pos, float speed, float acc, float dec, int mode);
+int FMC4030_Check_Axis_Is_Stop(int id, int axis);
+int FMC4030_Home_Single_Axis(int id, int axis, float homeSpeed, float homeAccDec, float homeFallStep, int homeDir);
+int FMC4030_Stop_Single_Axis(int id, int axis, int mode);
+int FMC4030_Get_Axis_Current_Pos(int id, int axis, float* pos);
+int FMC4030_Get_Axis_Current_Speed(int id, int axis, float* speed);
 
-/* IO²Ù×÷º¯Êı */
-int FMC4030_API FMC4030_Set_Output(int id, int io, int status);
-int FMC4030_API FMC4030_Get_Input(int id, int io, int* status);
+/* IOï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
+int FMC4030_Set_Output(int id, int io, int status);
+int FMC4030_Get_Input(int id, int io, int* status);
 
-/* 485×ÜÏßÍ¨ÓÃÊı¾İ²Ù×÷º¯Êı */
-int FMC4030_API FMC4030_Write_Data_To_485(int id, char* send, int length);
-int FMC4030_API FMC4030_Read_Data_From_485(int id, char* recv, int* length);
+/* 485ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½İ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
+int FMC4030_Write_Data_To_485(int id, char* send, int length);
+int FMC4030_Read_Data_From_485(int id, char* recv, int* length);
 
-/* 485×ÜÏßÀ©Õ¹Éè±¸²Ù×÷£¬ÊÊÓÃÓÚ²Ù×÷±¾Ë¾485À©Õ¹Éè±¸£¨µ¥Öá¿ØÖÆÆ÷¡¢IOÀ©Õ¹°åµÈÉè±¸£© */
-int FMC4030_API FMC4030_Set_FSC_Speed(int id, int slaveId, float speed);
+/* 485ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½Ë¾485ï¿½ï¿½Õ¹ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IOï¿½ï¿½Õ¹ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ */
+int FMC4030_Set_FSC_Speed(int id, int slaveId, float speed);
 
-/* ModbusĞ­Òé²Ù×÷º¯Êı£¬ÊÊÓÃÓÚFMC4030485×ÜÏß·¢ËÍModbusĞ­ÒéÊı¾İ·ÃÎÊ´Ó»úÉè±¸ */
-/* 01¹¦ÄÜÂë£º¶ÁÈ¡µ¥¸öÏßÈ¦Öµ */
-int FMC4030_API FMC4030_MB01_Operation(int id, int slaveId, unsigned short int addr, char* recv, int* recvLength);
+/* ModbusĞ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½FMC4030485ï¿½ï¿½ï¿½ß·ï¿½ï¿½ï¿½ModbusĞ­ï¿½ï¿½ï¿½ï¿½ï¿½İ·ï¿½ï¿½Ê´Ó»ï¿½ï¿½è±¸ */
+/* 01ï¿½ï¿½ï¿½ï¿½ï¿½ë£ºï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦Öµ */
+int FMC4030_MB01_Operation(int id, int slaveId, unsigned short int addr, char* recv, int* recvLength);
 
-/* 03¹¦ÄÜÂë£º¶Á¼Ä´æÆ÷Öµ */
-/** 03²Ù×÷
-  * id£º¿ØÖÆÆ÷Á¬½ÓÊ±·ÖÅäµÄidºÅ
-  * slaveId£º485×ÜÏß´Ó»úµØÖ·
-  * addr£º´Ó»úµØÖ·ÖĞµÄModbusÆğÊ¼µØÖ·
-  * numOfData£º¶ÁÈ¡µÄ¼Ä´æÆ÷¸öÊı
-  * recv£º´«ÈëÊı×éÖ¸Õë£¬¶ÁÈ¡µÄÄÚÈİ½«»á±£´æÔÚÆäÖĞ£¬¿ÉÌî0
-  * recvLength£º¶ÁÈ¡µ½µÄÊı¾İ³¤¶È£¬¿ÉÌî0
+/* 03ï¿½ï¿½ï¿½ï¿½ï¿½ë£ºï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½Öµ */
+int FMC4030_MB03_Operation(int id, int slaveId, unsigned short int addr, int numOfData, char* recv, int* recvLength);
+
+/* 05ï¿½ï¿½ï¿½ï¿½ï¿½ë£ºĞ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦Öµï¿½ï¿½1 ï¿½ï¿½ 0 */
+int FMC4030_MB05_Operation(int id, int slaveId, unsigned short int addr, unsigned short int val, char* recv, int* recvLength);
+
+/* 06ï¿½ï¿½ï¿½ï¿½ï¿½ë£ºĞ´ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½0x0000 ~ 0xFFFF */
+int FMC4030_MB06_Operation(int id, int slaveId, unsigned short int addr, unsigned short int val, char* recv, int* recvLength);
+
+/* 16ï¿½ï¿½ï¿½ï¿½ï¿½ë£ºĞ´ï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ */
+int FMC4030_MB16_Operation(int id, int slaveId, unsigned short int addr, int numOfData, unsigned short int* send, char* recv, int* recvLength);
+
+/* ï¿½ï¿½ï¿½ï¿½å²¹ï¿½ï¿½Øºï¿½ï¿½ï¿½ */
+/** ï¿½ï¿½ï¿½Ü£ï¿½ï¿½Ôµï¿½Ç°ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ß²å²¹ï¿½Ë¶ï¿½
+  * idï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  * axisï¿½ï¿½ï¿½å²¹ï¿½ï¿½ï¿½ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½Ê®ï¿½ï¿½ï¿½ï¿½ï¿½ÆµÄµï¿½ï¿½ï¿½Î»ï¿½ï¿½Ê¾Xï¿½ï¿½Yï¿½ï¿½Zï¿½á£¬ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½Ğ£ï¿½0x03ï¿½ï¿½0x05ï¿½ï¿½0x06ï¿½ï¿½
+  * endXï¿½ï¿½ï¿½Õµï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½Öµ
+  * endYï¿½ï¿½ï¿½Õµï¿½ï¿½Yï¿½ï¿½ï¿½ï¿½Öµ
+  * speedï¿½ï¿½ï¿½å²¹ï¿½Ù¶È£ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½Îªï¿½ï¿½ï¿½ï¿½Ï³ï¿½ï¿½Ù¶È£ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
+  * accï¿½ï¿½ï¿½å²¹ï¿½ï¿½ï¿½Ù¶È£ï¿½ï¿½Ë¼ï¿½ï¿½Ù¶ï¿½Í¬ï¿½ï¿½Îªï¿½Ï³É¼ï¿½ï¿½Ù¶ï¿½
+  * dccï¿½ï¿½ï¿½å²¹ï¿½ï¿½ï¿½Ù¶È£ï¿½ï¿½Ë¼ï¿½ï¿½Ù¶ï¿½Í¬ï¿½ï¿½Îªï¿½Ï³É¼ï¿½ï¿½Ù¶ï¿½
   */
-int FMC4030_API FMC4030_MB03_Operation(int id, int slaveId, unsigned short int addr, int numOfData, char* recv, int* recvLength);
+int FMC4030_Line_2Axis(int id, unsigned int axis, float endX, float endY, float speed, float acc, float dec);
 
-/* 05¹¦ÄÜÂë£ºĞ´µ¥¸öÏßÈ¦Öµ£¬1 »ò 0 */
-/** 05²Ù×÷
-  * id£º¿ØÖÆÆ÷Á¬½ÓÊ±·ÖÅäµÄidºÅ
-  * slaveId£º485×ÜÏß´Ó»úµØÖ·
-  * addr£º´Ó»úµØÖ·ÖĞµÄModbusÆğÊ¼µØÖ·
-  * val£ºĞ´ÈëµÄÖµ£º0xFF00 »ò 0x0000
-  * recv£º485×ÜÏß´Ó»ú·µ»ØµÄÊı¾İ£¬´«ÈëÊı×éÖ¸Õë£¬¶ÁÈ¡µÄÄÚÈİ½«»á±£´æÔÚÆäÖĞ£¬¿ÉÌî0
-  * recvLength£º¶ÁÈ¡µ½µÄÊı¾İ³¤¶È£¬¿ÉÌî0
+/** ï¿½ï¿½ï¿½Ü£ï¿½ï¿½Ôµï¿½Ç°ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ß²å²¹ï¿½Ë¶ï¿½
+  * idï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  * endXï¿½ï¿½ï¿½Õµï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½Öµ
+  * endYï¿½ï¿½ï¿½Õµï¿½ï¿½Yï¿½ï¿½ï¿½ï¿½Öµ
+  * endZï¿½ï¿½ï¿½Õµï¿½ï¿½Zï¿½ï¿½ï¿½ï¿½Öµ
+  * speedï¿½ï¿½ï¿½å²¹ï¿½Ù¶È£ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½Îªï¿½ï¿½ï¿½ï¿½Ï³ï¿½ï¿½Ù¶È£ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
+  * accï¿½ï¿½ï¿½å²¹ï¿½ï¿½ï¿½Ù¶È£ï¿½ï¿½Ë¼ï¿½ï¿½Ù¶ï¿½Í¬ï¿½ï¿½Îªï¿½Ï³É¼ï¿½ï¿½Ù¶ï¿½
+  * dccï¿½ï¿½ï¿½å²¹ï¿½ï¿½ï¿½Ù¶È£ï¿½ï¿½Ë¼ï¿½ï¿½Ù¶ï¿½Í¬ï¿½ï¿½Îªï¿½Ï³É¼ï¿½ï¿½Ù¶ï¿½
   */
-int FMC4030_API FMC4030_MB05_Operation(int id, int slaveId, unsigned short int addr, unsigned short int val, char* recv, int* recvLength);
+int FMC4030_Line_3Axis(int id, unsigned int axis, float endX, float endY, float endZ, float speed, float acc, float dec);
 
-/* 06¹¦ÄÜÂë£ºĞ´µ¥¸ö¼Ä´æÆ÷£¬0x0000 ~ 0xFFFF */
-/** 06²Ù×÷
-  * id£º¿ØÖÆÆ÷Á¬½ÓÊ±·ÖÅäµÄidºÅ
-  * slaveId£º485×ÜÏß´Ó»úµØÖ·
-  * addr£º´Ó»úµØÖ·ÖĞµÄModbusÆğÊ¼µØÖ·
-  * val£ºĞ´ÈëµÄÖµ
-  * recv£º485×ÜÏß´Ó»ú·µ»ØµÄÊı¾İ£¬´«ÈëÊı×éÖ¸Õë£¬¶ÁÈ¡µÄÄÚÈİ½«»á±£´æÔÚÆäÖĞ£¬¿ÉÌî0
-  * recvLength£º¶ÁÈ¡µ½µÄÊı¾İ³¤¶È£¬¿ÉÌî0
+/** ï¿½ï¿½ï¿½Ü£ï¿½ï¿½Ôµï¿½Ç°ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô²ï¿½ï¿½ï¿½å²¹ï¿½Ë¶ï¿½
+  * idï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  * axisï¿½ï¿½ï¿½å²¹ï¿½ï¿½ï¿½ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½Ê®ï¿½ï¿½ï¿½ï¿½ï¿½ÆµÄµï¿½ï¿½ï¿½Î»ï¿½ï¿½Ê¾Xï¿½ï¿½Yï¿½ï¿½Zï¿½á£¬ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½Ğ£ï¿½0x03ï¿½ï¿½0x05ï¿½ï¿½0x06ï¿½ï¿½
+  * endXï¿½ï¿½ï¿½Õµï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½Öµ
+  * endYï¿½ï¿½ï¿½Õµï¿½ï¿½Yï¿½ï¿½ï¿½ï¿½Öµ
+  * centerXï¿½ï¿½Ô²ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½Öµ
+  * centerYï¿½ï¿½Ô²ï¿½ï¿½Yï¿½ï¿½ï¿½ï¿½Öµ
+  * radiusï¿½ï¿½Ô²ï¿½ë¾¶
+  * speedï¿½ï¿½ï¿½å²¹ï¿½Ù¶È£ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½Îªï¿½ï¿½ï¿½ï¿½Ï³ï¿½ï¿½Ù¶È£ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
+  * accï¿½ï¿½ï¿½å²¹ï¿½ï¿½ï¿½Ù¶È£ï¿½ï¿½Ë¼ï¿½ï¿½Ù¶ï¿½Í¬ï¿½ï¿½Îªï¿½Ï³É¼ï¿½ï¿½Ù¶ï¿½
+  * dccï¿½ï¿½ï¿½å²¹ï¿½ï¿½ï¿½Ù¶È£ï¿½ï¿½Ë¼ï¿½ï¿½Ù¶ï¿½Í¬ï¿½ï¿½Îªï¿½Ï³É¼ï¿½ï¿½Ù¶ï¿½
   */
-int FMC4030_API FMC4030_MB06_Operation(int id, int slaveId, unsigned short int addr, unsigned short int val, char* recv, int* recvLength);
+int FMC4030_Arc_2Axis(int id, unsigned int axis, float endX, float endY, float centerX, float centerY, float radius, float speed, float acc, float dec, int dir);
 
-/* 16¹¦ÄÜÂë£ºĞ´¶à¸ö¼Ä´æÆ÷ */
-/** 16²Ù×÷
-  * id£º¿ØÖÆÆ÷Á¬½ÓÊ±·ÖÅäµÄidºÅ
-  * slaveId£º485×ÜÏß´Ó»úµØÖ·
-  * addr£º´Ó»úµØÖ·ÖĞµÄModbusÆğÊ¼µØÖ·
-  * numOfData£º´ıĞ´ÈëµÄÊı¾İ¸öÊı
-  * send£ºĞ´ÈëÖµµÃÊı×é£¬Ó¦Óë¸öÊıÏàÆ¥Åä
-  * recv£º485×ÜÏß´Ó»ú·µ»ØµÄÊı¾İ£¬´«ÈëÊı×éÖ¸Õë£¬¶ÁÈ¡µÄÄÚÈİ½«»á±£´æÔÚÆäÖĞ£¬¿ÉÌî0
-  * recvLength£º¶ÁÈ¡µ½µÄÊı¾İ³¤¶È£¬¿ÉÌî0
+int FMC4030_Pause_Run(int id, unsigned int axis);
+int FMC4030_Resume_Run(int id, unsigned int axis);
+int FMC4030_Stop_Run(int id);
+
+/* ï¿½è±¸×´Ì¬ï¿½ï¿½Ñ¯ï¿½ï¿½Øºï¿½ï¿½ï¿½ */
+/** ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½Ñ¯ï¿½è±¸×´Ì¬ï¿½ï¿½Ï¢
+  * idï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  * machineDataï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ë£¬ï¿½ï¿½machine_statusï¿½ï¿½ï¿½ï¿½Ä½á¹¹ï¿½ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Éºï¿½ï¿½ï¿½ï¿½é½«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   */
-int FMC4030_API FMC4030_MB16_Operation(int id, int slaveId, unsigned short int addr, int numOfData, unsigned short int* send, char* recv, int* recvLength);
+int FMC4030_Get_Machine_Status(int id, unsigned char* machineData);
+int FMC4030_Get_Device_Para(int id, unsigned char* devicePara);
+int FMC4030_Set_Device_Para(int id, unsigned char* devicePara);
+int FMC4030_Get_Version_Info(int id, unsigned char* version);
 
-/* ¶àÖá²å²¹Ïà¹Øº¯Êı */
-/** ¹¦ÄÜ£ºÒÔµ±Ç°µãÎªÆğµãµÄÁ½ÖáÖ±Ïß²å²¹ÔË¶¯
-  * id£º¿¨ºÅ
-  * axis£º²å²¹µÄÖáºÅ£¬²ÉÓÃÊ®Áù½øÖÆµÄµÍÈıÎ»±íÊ¾X¡¢Y¡¢ZÖá£¬¿ÉÑ¡×éºÏÓĞ£¨0x03¡¢0x05¡¢0x06£©
-  * endX£ºÖÕµãµÄX×ø±êÖµ
-  * endY£ºÖÕµãµÄY×ø±êÖµ
-  * speed£º²å²¹ËÙ¶È£¬´ËËÙ¶ÈÎªÁ½ÖáºÏ³ÉËÙ¶È£¬²¢·Ç¸÷¶ÀÁ¢ÖáÊµ¼ÊÔËĞĞËÙ¶È
-  * acc£º²å²¹¼ÓËÙ¶È£¬´Ë¼ÓËÙ¶ÈÍ¬ÑùÎªºÏ³É¼ÓËÙ¶È
-  * dcc£º²å²¹¼õËÙ¶È£¬´Ë¼õËÙ¶ÈÍ¬ÑùÎªºÏ³É¼õËÙ¶È
+/* ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øºï¿½ï¿½ï¿½ */
+/** ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½ï¿½Ø¿ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ö±ï¿½Îª.bin  .elo,ï¿½Ëºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ï´ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï³ï¿½Ê±ï¿½ï¿½
+  * idï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  * filePathï¿½ï¿½ï¿½Ä¼ï¿½Â·ï¿½ï¿½
+  * fileTypeï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½  1ï¿½ï¿½ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½  2ï¿½ï¿½ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½Ğ½Å±ï¿½ï¿½Ä¼ï¿½
   */
-int FMC4030_API FMC4030_Line_2Axis(int id, unsigned int axis, float endX, float endY, float speed, float acc, float dec);
+int FMC4030_Download_File(int id, char* filePath, int fileType);
 
-/** ¹¦ÄÜ£ºÒÔµ±Ç°µãÎªÆğµãµÄÈıÖáÖ±Ïß²å²¹ÔË¶¯
-  * id£º¿¨ºÅ
-  * endX£ºÖÕµãµÄX×ø±êÖµ
-  * endY£ºÖÕµãµÄY×ø±êÖµ
-  * endZ£ºÖÕµãµÄZ×ø±êÖµ
-  * speed£º²å²¹ËÙ¶È£¬´ËËÙ¶ÈÎªÈıÖáºÏ³ÉËÙ¶È£¬²¢·Ç¸÷¶ÀÁ¢ÖáÊµ¼ÊÔËĞĞËÙ¶È
-  * acc£º²å²¹¼ÓËÙ¶È£¬´Ë¼ÓËÙ¶ÈÍ¬ÑùÎªºÏ³É¼ÓËÙ¶È
-  * dcc£º²å²¹¼õËÙ¶È£¬´Ë¼õËÙ¶ÈÍ¬ÑùÎªºÏ³É¼õËÙ¶È
+/* ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øºï¿½ï¿½ï¿½ */
+/** ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½ÚµÄ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½
+  * idï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  * fileï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½ï¿½Æ¿ï¿½ï¿½Ú²ï¿½ï¿½ï¿½È¡
   */
-int FMC4030_API FMC4030_Line_3Axis(int id, unsigned int axis, float endX, float endY, float endZ, float speed, float acc, float dec);
+int FMC4030_Start_Auto_Run(int id, char* file);
 
-/** ¹¦ÄÜ£ºÒÔµ±Ç°µãÎªÆğµãµÄÁ½ÖáÔ²»¡²å²¹ÔË¶¯
-  * id£º¿¨ºÅ
-  * axis£º²å²¹µÄÖáºÅ£¬²ÉÓÃÊ®Áù½øÖÆµÄµÍÈıÎ»±íÊ¾X¡¢Y¡¢ZÖá£¬¿ÉÑ¡×éºÏÓĞ£¨0x03¡¢0x05¡¢0x06£©
-  * endX£ºÖÕµãµÄX×ø±êÖµ
-  * endY£ºÖÕµãµÄY×ø±êÖµ
-  * centerX£ºÔ²ĞÄX×ø±êÖµ
-  * centerY£ºÔ²ĞÄY×ø±êÖµ
-  * radius£ºÔ²°ë¾¶
-  * speed£º²å²¹ËÙ¶È£¬´ËËÙ¶ÈÎªÁ½ÖáºÏ³ÉËÙ¶È£¬²¢·Ç¸÷¶ÀÁ¢ÖáÊµ¼ÊÔËĞĞËÙ¶È
-  * acc£º²å²¹¼ÓËÙ¶È£¬´Ë¼ÓËÙ¶ÈÍ¬ÑùÎªºÏ³É¼ÓËÙ¶È
-  * dcc£º²å²¹¼õËÙ¶È£¬´Ë¼õËÙ¶ÈÍ¬ÑùÎªºÏ³É¼õËÙ¶È
+/** ï¿½ï¿½ï¿½Ü£ï¿½Í£Ö¹ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½
+  * idï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   */
-int FMC4030_API FMC4030_Arc_2Axis(int id, unsigned int axis, float endX, float endY, float centerX, float centerY, float radius, float speed, float acc, float dec, int dir);
+int FMC4030_Stop_Auto_Run(int id);
 
-int FMC4030_API FMC4030_Pause_Run(int id, unsigned int axis);
-int FMC4030_API FMC4030_Resume_Run(int id, unsigned int axis);
-int FMC4030_API FMC4030_Stop_Run(int id);
-
-/* Éè±¸×´Ì¬²éÑ¯Ïà¹Øº¯Êı */
-/** ¹¦ÄÜ£º²éÑ¯Éè±¸×´Ì¬ĞÅÏ¢
-  * id£º¿¨ºÅ
-  * machineData£º´«ÈëµÄ×Ö·ûÊı×éÖ¸Õë£¬ÓÉmachine_status¶¨ÒåµÄ½á¹¹Ìå×é³É£¬µ÷ÓÃÍê³Éºó£¬Êı×é½«»áÌî³äÊı¾İ
+/** ï¿½ï¿½ï¿½Ü£ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú³ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
+  * idï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  * fileï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½ï¿½Æ¿ï¿½ï¿½Ú²ï¿½ï¿½ï¿½È¡
   */
-int FMC4030_API FMC4030_Get_Machine_Status(int id, unsigned char* machineData);
-int FMC4030_API FMC4030_Get_Device_Para(int id, unsigned char* devicePara);
-int FMC4030_API FMC4030_Set_Device_Para(int id, unsigned char* devicePara);
-int FMC4030_API FMC4030_Get_Version_Info(int id, unsigned char* version);
-
-/* ÎÄ¼ş²Ù×÷Ïà¹Øº¯Êı */
-/** ¹¦ÄÜ£ºÏÂÔØ¿ØÖÆ¿¨Éı¼¶ÎÄ¼ş»ò½Å±¾³ÌĞòÎÄ¼ş£¬·Ö±ğÎª.bin  .elo,´Ëº¯ÊıÔÚÏÂÔØÎÄ¼ş½Ï´óÊ±»á×èÈû½Ï³¤Ê±¼ä
-  * id£º¿¨ºÅ
-  * filePath£ºÎÄ¼şÂ·¾¶
-  * fileType£ºÎÄ¼şÀàĞÍ  1£º¿ØÖÆ¿¨Éı¼¶³ÌĞòÎÄ¼ş  2£º¿ØÖÆ¿¨×Ô¶¯ÔËĞĞÖ´ĞĞ½Å±¾ÎÄ¼ş
-  */
-int FMC4030_API FMC4030_Download_File(int id, char* filePath, int fileType);
-
-/* ×Ô¶¯¿ØÖÆÏà¹Øº¯Êı */
-/** ¹¦ÄÜ£ºÆô¶¯¿ØÖÆ¿¨ÄÚµÄ³ÌĞò½øĞĞ×Ô¶¯ÔËĞĞ
-  * id£º¿¨ºÅ
-  * file£º´ıÆô¶¯µÄÎÄ¼şÃû£¬´ËÎÄ¼şÃû´Ó¿ØÖÆ¿¨ÄÚ²¿»ñÈ¡
-  */
-int FMC4030_API FMC4030_Start_Auto_Run(int id, char* file);
-
-/** ¹¦ÄÜ£ºÍ£Ö¹¿ØÖÆ¿¨×Ô¶¯ÔËĞĞ
-  * id£º¿¨ºÅ
-  */
-int FMC4030_API FMC4030_Stop_Auto_Run(int id);
-
-/** ¹¦ÄÜ£ºÉ¾³ı¿ØÖÆÆ÷ÄÚ³ÌĞòÎÄ¼ş
-  * id£º¿¨ºÅ
-  * file£º´ıÉ¾³ıµÄÎÄ¼şÃû£¬´ËÎÄ¼şÃû´Ó¿ØÖÆ¿¨ÄÚ²¿»ñÈ¡
-  */
-int FMC4030_API FMC4030_Delete_Script_File(int id, char* file);
+int FMC4030_Delete_Script_File(int id, char* file);
 
 
 #ifdef __cplusplus
 }
-#endif
+#endif 
 
 #endif
