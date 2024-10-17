@@ -134,7 +134,7 @@ class MMWBraket:
             pos = self._real_pos(relative_len, self.x_reverse)
             self.bc.jog_single_axis_relative(self.x_axis_id, pos, self.x_speed, self.x_acc, self.x_dec)
             pos = self._real_pos(relative_len, self.y_reverse)
-            self.bc.jog_single_axis_relative(self.y_axis_id, 100, self.y_speed, self.y_acc, self.y_dec)
+            self.bc.jog_single_axis_relative(self.y_axis_id, pos, self.y_speed, self.y_acc, self.y_dec)
 
             self.bc.wait_axis_stop(self.x_axis_id)
             self.bc.wait_axis_stop(self.y_axis_id)
