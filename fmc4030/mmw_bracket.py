@@ -105,11 +105,13 @@ class MMWBraket:
         #self.bc.wait_axis_stop(self.y_axis_id)
 
         if home_axis:
-            x_dir = 2 if self.x_reverse else 1
+            x_dir = 1 if self.x_reverse else 2
             self.bc.home_single_axis(self.x_axis_id, self.x_home_speed, self.x_acc, self.x_fall_step, x_dir)
-            y_dir = 2 if self.y_reverse else 1
+            y_dir = 1 if self.y_reverse else 2
             self.bc.home_single_axis(self.y_axis_id, self.y_home_speed, self.y_acc, self.y_fall_step, y_dir)
-            time.sleep(12)
 
+            self.bc.wait_axis_stop(self.x_axis_id,1)
+            self.bc.wait_axis_stop(self.y_axis_id,1)         
+            #time.sleep(12)
         self.x_pos = 0.0
         self.y_pos = 0.0

@@ -164,9 +164,9 @@ class FMC4030:
         return bool(res)
 
     @validate_call
-    def wait_axis_stop(self, axis: int):
+    def wait_axis_stop(self, axis: int,wait_time=0.001):
         while not self.check_axis_is_stop(axis):
-            pass
+            time.sleep(wait_time)
 
     @validate_call
     @util.min_delay()
