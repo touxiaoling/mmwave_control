@@ -1,15 +1,9 @@
 
 from fmc4030 import FMC4030,MMWBraket
 
+fmc4030 = FMC4030()
+with MMWBraket(fmc4030) as mmwb:
 
-
-def main():
-    fmc4030 = FMC4030()
-    fmc4030.open_device()
-    mmwb = MMWBraket(fmc4030)
     mmwb.home_axis()
     mmwb.jog_x(100)
     mmwb.jog_y(200)
-
-if __name__ =="__main__":
-    main()

@@ -173,6 +173,17 @@ class FMC4030:
             flib.close_device(self.id)
             self.connected = False
 
+    def __enter__(self):
+        if not self.connected:
+            self.open_device()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.connected:
+            self.close_device()
+        else:
+            raise ValueError("device already closed")
+
     @util.min_delay()
     def _jog_single_axis(self, axis: int, pos: float, speed: float, acc: float, dec: float, mode: int):
         flib.jog_single_axis(self.id, axis, pos, speed, acc, dec, mode)

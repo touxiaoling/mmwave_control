@@ -64,6 +64,13 @@ class MMWBraket:
 
         self._break_lock_flag = True
 
+    def __enter__(self):
+        self.bc.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.bc.__exit__(exc_type, exc_val, exc_tb)
+
     @property
     def x_dir(self):
         return 1 if self.x_reverse else 2
