@@ -106,7 +106,7 @@ class MMWBraket:
         real_pos = self._real_pos(pos, self.x_reverse)
         self.bc.jog_single_axis_absolute(self.x_axis_id, real_pos, speed, acc, dec)
 
-        running_time = cal_running_time(pos - self.x_pos, speed, acc, dec) - 0.1
+        running_time = cal_running_time(pos - self.x_pos, speed, acc, dec) - 0.01
         if running_time >= 0:
             time.sleep(running_time)
 
@@ -124,7 +124,7 @@ class MMWBraket:
         with self.break_conrtol():
             self.bc.jog_single_axis_absolute(self.y_axis_id, real_pos, speed, acc, dec)
 
-            running_time = cal_running_time(pos - self.y_pos, speed, acc, dec) - 0.1
+            running_time = cal_running_time(pos - self.y_pos, speed, acc, dec) - 0.01
             if running_time >= 0:
                 time.sleep(running_time)
 
