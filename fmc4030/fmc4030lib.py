@@ -2,6 +2,7 @@ from ctypes import Structure, c_float, c_int, c_uint, c_ushort, c_char, c_char_p
 from ctypes import CDLL
 import platform
 from pathlib import Path
+from typing import Any
 
 # @machine_status.machineRunStatus
 MACHINE_MANUAL = 0x0001
@@ -72,11 +73,33 @@ class MachineVersion(Structure):
     ]
 
 
+class MacTestFunc:
+    def __init__(self):
+        self.argtypes = c_int
+        self.errcheck = None
+
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        pass
+
+
+class MacTestLib:
+    def __init__(self):
+        self.dynamic_methods = {}
+
+    def __getattr__(self, name):
+        if name not in self.dynamic_methods:
+            #print(f"Creating method '{name}' dynamically")
+
+            self.dynamic_methods[name] = MacTestFunc()
+
+        return self.dynamic_methods[name]
+
+
 # 加载动态库
 def loadlib() -> CDLL:
     lib_path = Path(__file__).parent
     match platform.system():
-        case "Linux" | "Darwin":
+        case "Linux":
             from ctypes import cdll
 
             fmc4030lib = cdll.LoadLibrary(lib_path / "lib/ubuntu/x64/libFMC4030-Lib.so")
@@ -84,6 +107,8 @@ def loadlib() -> CDLL:
             from ctypes import windll
 
             fmc4030lib = windll.LoadLibrary(lib_path / "lib/win/x64/FMC4030-Dll.dll")
+        case "Darwin":
+            fmc4030lib = MacTestLib()
         case _:
             raise ValueError(f"unknow system {platform.system()}")
     return fmc4030lib
@@ -92,7 +117,7 @@ def loadlib() -> CDLL:
 def validate_code(rcode, func, arguments):
     if -6 <= rcode <= -1:
         raise ValueError(f"error code {rcode}")
-    
+
     return rcode
 
 
