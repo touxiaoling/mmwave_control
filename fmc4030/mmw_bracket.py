@@ -12,7 +12,7 @@ def cal_running_time(length, speed, acc, dec):
     min_length = t_acc_dec * speed / 2  # 最小移动距离
     length = abs(length)
     if length < min_length:
-        running_t = t_acc_dec * length / min_length  # 如果小于最小移动距离，就根据相似三角形计算时间
+        running_t = t_acc_dec * math.sqrt(length / min_length)  # 如果小于最小移动距离，就根据相似三角形计算时间
     else:
         running_t = t_acc_dec + (length - min_length) / speed
 
