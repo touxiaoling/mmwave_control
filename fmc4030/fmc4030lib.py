@@ -88,7 +88,7 @@ class MacTestLib:
 
     def __getattr__(self, name):
         if name not in self.dynamic_methods:
-            #print(f"Creating method '{name}' dynamically")
+            # print(f"Creating method '{name}' dynamically")
 
             self.dynamic_methods[name] = MacTestFunc()
 
@@ -108,6 +108,7 @@ def loadlib() -> CDLL:
 
             fmc4030lib = windll.LoadLibrary(lib_path / "lib/win/x64/FMC4030-Dll.dll")
         case "Darwin":
+            print("WARNNING:running in Mac system! lib not found!")
             fmc4030lib = MacTestLib()
         case _:
             raise ValueError(f"unknow system {platform.system()}")
