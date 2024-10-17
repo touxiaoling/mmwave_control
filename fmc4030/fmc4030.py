@@ -9,6 +9,42 @@ from . import fmc4030lib as flib
 from . import util
 
 
+class AxisStaus(BaseModel):
+    power_on: bool
+    running: bool
+    pause: bool
+    resume: bool
+    stop: bool
+    limit_n: bool
+    limit_p: bool
+    home_done: bool
+    home: bool
+    auto_run: bool
+    limit_n_none: bool
+    limit_p_none: bool
+    home_none: bool
+    home_overtime: bool
+
+    @classmethod
+    def from_ctypes(cls, cins: int):
+        return cls(
+            power_on=bool(cins & 0x0000),
+            running=bool(cins & 0x0001),
+            pause=bool(cins & 0x0002),
+            resume=bool(cins & 0x0004),
+            stop=bool(cins & 0x0008),
+            limit_n=bool(cins & 0x0010),
+            limit_p=bool(cins & 0x0020),
+            home_done=bool(cins & 0x0040),
+            home=bool(cins & 0x0080),
+            auto_run=bool(cins & 0x0100),
+            limit_n_none=bool(cins & 0x0200),
+            limit_p_none=bool(cins & 0x0400),
+            home_none=bool(cins & 0x0800),
+            home_overtime=bool(cins & 0x1000),
+        )
+
+
 class MachineStatus(BaseModel):
     real_pos: tuple[float, float, float]
     real_speed: tuple[float, float, float]
@@ -16,10 +52,35 @@ class MachineStatus(BaseModel):
     output_status: int
     limit_n_status: int
     limit_p_status: int
-    machine_run_status: int
-    axis_status: tuple[int, int, int]
+    machine_run_status: str
+    axis_status: tuple[AxisStaus, AxisStaus, AxisStaus]
     home_status: int
     file: str
+
+    @classmethod
+    def from_ctypes(cls, cins: flib.MachineStatus):
+        match cins.machineRunStatus:
+            case flib.MACHINE_MANUAL:
+                machine_run_status = "MANUAL"
+            case flib.MACHINE_AUTO:
+                machine_run_status = "AUTO"
+            case _:
+                machine_run_status = "UNKNOWN"
+
+        axis_status = tuple(AxisStaus.from_ctypes(i) for i in cins.axisStatus)
+
+        return cls(
+            real_pos=cins.realPos,
+            real_speed=cins.realSpeed,
+            input_status=cins.inputStatus,
+            output_status=cins.outputStatus,
+            limit_n_status=cins.limitNStatus,
+            limit_p_status=cins.limitPStatus,
+            machine_run_status=machine_run_status,
+            axis_status=axis_status,
+            home_status=cins.homeStatus,
+            file=cins.file.decode("utf-8"),
+        )
 
 
 class DevicePara(BaseModel):
@@ -34,64 +95,48 @@ class DevicePara(BaseModel):
     soft_limit_min: tuple[int, int, int]
     home_time: tuple[int, int, int]
 
+    @classmethod
+    def from_ctypes(cls, cins: flib.DevicePara):
+        return cls(
+            id=cins.id,
+            bound232=cins.bound232,
+            bound485=cins.bound485,
+            ip=cins.ip.decode("utf-8"),
+            port=cins.port,
+            div=cins.div,
+            lead=cins.lead,
+            soft_limit_max=cins.softLimitMax,
+            soft_limit_min=cins.softLimitMin,
+            home_time=cins.homeTime,
+        )
+
+    def to_ctypes(self) -> flib.DevicePara:
+        return flib.DevicePara(
+            id=self.id,
+            bound232=self.bound232,
+            bound485=self.bound485,
+            ip=self.ip.encode("utf-8"),
+            port=self.port,
+            div=self.div,
+            lead=self.lead,
+            softLimitMax=self.soft_limit_max,
+            softLimitMin=self.soft_limit_min,
+            homeTime=self.home_time,
+        )
+
 
 class MachineVersion(BaseModel):
     firmware: int
     lib: int
     serial_number: int
 
-
-def machine_status_turn(cins: flib.MachineStatus):
-    return MachineStatus(
-        real_pos=cins.realPos,
-        real_speed=cins.realSpeed,
-        input_status=cins.inputStatus,
-        output_status=cins.outputStatus,
-        limit_n_status=cins.limitNStatus,
-        limit_p_status=cins.limitPStatus,
-        machine_run_status=cins.machineRunStatus,
-        axis_status=cins.axisStatus,
-        home_status=cins.homeStatus,
-        file=cins.file.decode("utf-8"),
-    )
-
-
-def device_para_turn(cins: flib.DevicePara):
-    return DevicePara(
-        id=cins.id,
-        bound232=cins.bound232,
-        bound485=cins.bound485,
-        ip=cins.ip.decode("utf-8"),
-        port=cins.port,
-        div=cins.div,
-        lead=cins.lead,
-        soft_limit_max=cins.softLimitMax,
-        soft_limit_min=cins.softLimitMin,
-        home_time=cins.homeTime,
-    )
-
-
-def device_para_return(pins: DevicePara):
-    return flib.DevicePara(
-        id=pins.id,
-        bound232=pins.bound232,
-        bound485=pins.bound485,
-        ip=pins.ip.encode("utf-8"),
-        port=pins.port,
-        div=pins.div,
-        lead=pins.lead,
-        softLimitMax=pins.soft_limit_max,
-        softLimitMin=pins.soft_limit_min,
-        homeTime=pins.home_time,
-    )
-
-
-def machine_version_turn(cins: flib.MachineVersion):
-    return MachineVersion(
-        firmware=cins.firmware,
-        lib=cins.lib,
-        serial_number=cins.serialNumber,
-    )
+    @classmethod
+    def from_ctypes(cls, cins: flib.MachineVersion):
+        return cls(
+            firmware=cins.firmware,
+            lib=cins.lib,
+            serial_number=cins.serialNumber,
+        )
 
 
 class FMC4030:
@@ -164,7 +209,7 @@ class FMC4030:
         return bool(res)
 
     @validate_call
-    def wait_axis_stop(self, axis: int,wait_time=0.01):
+    def wait_axis_stop(self, axis: int, wait_time=0.01):
         while not self.check_axis_is_stop(axis):
             time.sleep(wait_time)
 
@@ -301,20 +346,20 @@ class FMC4030:
         """取设备状态及运行参数，参数包含三轴位置，三轴速度，回零状态，输入状态，设备序列号等等"""
         ms = self._ms
         flib.get_machine_status(self.id, byref(ms))
-        return machine_status_turn(ms)
+        return MachineStatus.from_ctypes(ms)
 
     @util.min_delay()
     def get_device_para(self):
         """取设备设置参数及各轴设置参数，包含 ip，端口号，导程、细分等参数"""
         dp = self._dp
         flib.get_device_para(self.id, byref(dp))
-        return device_para_turn(dp)
+        return DevicePara.from_ctypes(dp)
 
     @validate_call
     @util.min_delay()
     def set_device_para(self, para: DevicePara):
         """设置设备参数及各轴参数，请勿随意修改，避免造成设备运行错误致设备损坏"""
-        para = device_para_return(para)
+        para = para.to_ctypes()
         flib.set_device_para(self.id, byref(para))
 
     @validate_call
@@ -323,4 +368,4 @@ class FMC4030:
         """获取设备版本信息，包含固件版本，库版本，序列号"""
         mv = self._mv
         flib.get_version_info(self.id, byref(mv))
-        return machine_version_turn(mv)
+        return MachineVersion.from_ctypes(mv)
