@@ -1,5 +1,7 @@
 import time
 import math
+from contextlib import contextmanager
+from threading import Lock
 
 from .fmc4030 import FMC4030
 from . import fmc4030lib as flib
@@ -60,6 +62,25 @@ class MMWBraket:
         if not self.bc.connected:
             self.bc.open_device()
 
+        self._break_lock_flag = True
+
+    def _real_pos(self, pos, reverse):
+        return -pos if reverse else pos
+
+    @contextmanager
+    def break_conrtol(self):
+        io_id = 0
+        if self._break_lock_flag:
+            self._break_unlock_flag = False
+            self.bc.set_output(io_id, 1)
+            try:
+                yield
+            finally:
+                self.bc.set_output(io_id, 0)
+                self._break_unlock_flag = True
+        else:
+            yield
+
     def jog_x(self, pos: float, speed: float = None, acc: float = None, dec: float = None):
         if not 0 <= pos <= self.x_pos_limit:
             raise ValueError(f"x pos {pos} out limit 0~{self.x_pos_limit}")
@@ -67,7 +88,7 @@ class MMWBraket:
         acc = acc or self.x_acc
         dec = dec or self.x_dec
 
-        real_pos = -pos if self.x_reverse else pos
+        real_pos = self._real_pos(pos, self.x_reverse)
         self.bc.jog_single_axis_absolute(self.x_axis_id, real_pos, speed, acc, dec)
 
         running_time = cal_running_time(pos - self.x_pos, speed, acc, dec) - 0.1
@@ -84,36 +105,38 @@ class MMWBraket:
         acc = acc or self.y_acc
         dec = dec or self.y_dec
 
-        real_pos = -pos if self.y_reverse else pos
-        self.bc.set_output(0,1)
-        self.bc.jog_single_axis_absolute(self.y_axis_id, real_pos, speed, acc, dec)
+        real_pos = self._real_pos(pos, self.y_reverse)
+        with self.break_conrtol():
+            self.bc.jog_single_axis_absolute(self.y_axis_id, real_pos, speed, acc, dec)
 
-        running_time = cal_running_time(pos - self.y_pos, speed, acc, dec) - 0.1
-        if running_time >= 0:
-            time.sleep(running_time)
+            running_time = cal_running_time(pos - self.y_pos, speed, acc, dec) - 0.1
+            if running_time >= 0:
+                time.sleep(running_time)
 
-        self.bc.wait_axis_stop(self.y_axis_id)
-        self.bc.set_output(0,0)
+            self.bc.wait_axis_stop(self.y_axis_id)
+
         self.y_pos = pos
 
     def home_axis(self, home_axis=True, x_reverse_corrector=False, y_reverse_corrector=False):
-        #x_pos = self.x_pos_limit if x_reverse_corrector else 0
-        #y_pos = self.y_pos_limit if y_reverse_corrector else 0
+        # x_pos = self.x_pos_limit if x_reverse_corrector else 0
+        # y_pos = self.y_pos_limit if y_reverse_corrector else 0
+        relative_len = 100
 
-        #self.bc.jog_single_axis_absolute(self.x_axis_id, x_pos, self.x_speed, self.x_acc, self.x_dec)
-        #self.bc.jog_single_axis_absolute(self.y_axis_id, y_pos, self.y_speed, self.y_acc, self.y_dec)
+        with self.break_conrtol():
+            self.bc.jog_single_axis_relative(self.x_axis_id, 100, self.x_speed, self.x_acc, self.x_dec)
+            self.bc.jog_single_axis_relative(self.y_axis_id, 100, self.y_speed, self.y_acc, self.y_dec)
 
-        #self.bc.wait_axis_stop(self.x_axis_id)
-        #self.bc.wait_axis_stop(self.y_axis_id)
+            self.bc.wait_axis_stop(self.x_axis_id)
+            self.bc.wait_axis_stop(self.y_axis_id)
 
-        if home_axis:
-            x_dir = 1 if self.x_reverse else 2
-            self.bc.home_single_axis(self.x_axis_id, self.x_home_speed, self.x_acc, self.x_fall_step, x_dir)
-            y_dir = 1 if self.y_reverse else 2
-            self.bc.home_single_axis(self.y_axis_id, self.y_home_speed, self.y_acc, self.y_fall_step, y_dir)
+            if home_axis:
+                x_dir = 1 if self.x_reverse else 2
+                self.bc.home_single_axis(self.x_axis_id, self.x_home_speed, self.x_acc, self.x_fall_step, x_dir)
+                y_dir = 1 if self.y_reverse else 2
+                self.bc.home_single_axis(self.y_axis_id, self.y_home_speed, self.y_acc, self.y_fall_step, y_dir)
 
-            self.bc.wait_axis_stop(self.x_axis_id,1)
-            self.bc.wait_axis_stop(self.y_axis_id,1)         
-            #time.sleep(12)
+                self.bc.wait_axis_stop(self.x_axis_id, 1)
+                self.bc.wait_axis_stop(self.y_axis_id, 1)
+            # time.sleep(12)
         self.x_pos = 0.0
         self.y_pos = 0.0
