@@ -85,6 +85,7 @@ class MMWBraket:
         dec = dec or self.y_dec
 
         real_pos = -pos if self.y_reverse else pos
+        self.bc.set_output(0,1)
         self.bc.jog_single_axis_absolute(self.y_axis_id, real_pos, speed, acc, dec)
 
         running_time = cal_running_time(pos - self.y_pos, speed, acc, dec) - 0.1
@@ -92,6 +93,7 @@ class MMWBraket:
             time.sleep(running_time)
 
         self.bc.wait_axis_stop(self.y_axis_id)
+        self.bc.set_output(0,0)
         self.y_pos = pos
 
     def home_axis(self, home_axis=True, x_reverse_corrector=False, y_reverse_corrector=False):
