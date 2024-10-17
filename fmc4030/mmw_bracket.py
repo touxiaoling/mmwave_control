@@ -96,6 +96,27 @@ class MMWBraket:
         else:
             yield
 
+    def axis_status_iter(self):
+        ms = self.bc.get_machine_status()
+        yield ms
+        while any(i.running for i in ms.axis_status):
+            ms = self.bc.get_machine_status()
+            yield ms
+
+    def jog_x_iter(self, pos: float, speed: float = None, acc: float = None, dec: float = None):
+        if not 0 <= pos <= self.x_pos_limit:
+            raise ValueError(f"x pos {pos} out limit 0~{self.x_pos_limit}")
+        speed = speed or self.x_speed
+        acc = acc or self.x_acc
+        dec = dec or self.x_dec
+
+        real_pos = self._real_pos(pos, self.x_reverse)
+        self.bc.jog_single_axis_absolute(self.x_axis_id, real_pos, speed, acc, dec)
+
+        for ms in self.axis_status_iter():
+            yield ms
+        self.x_pos = pos
+
     def jog_x(self, pos: float, speed: float = None, acc: float = None, dec: float = None):
         if not 0 <= pos <= self.x_pos_limit:
             raise ValueError(f"x pos {pos} out limit 0~{self.x_pos_limit}")
