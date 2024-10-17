@@ -64,6 +64,14 @@ class MMWBraket:
 
         self._break_lock_flag = True
 
+    @property
+    def x_dir(self):
+        return 1 if self.x_reverse else 2
+
+    @property
+    def y_dir(self):
+        return 1 if self.y_reverse else 2
+
     def _real_pos(self, pos, reverse):
         return -pos if reverse else pos
 
@@ -132,10 +140,10 @@ class MMWBraket:
             self.bc.wait_axis_stop(self.y_axis_id)
 
             if home_axis:
-                x_dir = 1 if self.x_reverse else 2
-                self.bc.home_single_axis(self.x_axis_id, self.x_home_speed, self.x_acc, self.x_fall_step, x_dir)
-                y_dir = 1 if self.y_reverse else 2
-                self.bc.home_single_axis(self.y_axis_id, self.y_home_speed, self.y_acc, self.y_fall_step, y_dir)
+                self.bc.home_single_axis(self.x_axis_id, self.x_home_speed, self.x_acc, self.x_fall_step, self.x_dir)
+                self.bc.home_single_axis(self.y_axis_id, self.y_home_speed, self.y_acc, self.y_fall_step, self.y_dir)
+
+                time.sleep(1)
 
                 self.bc.wait_axis_stop(self.x_axis_id, 1)
                 self.bc.wait_axis_stop(self.y_axis_id, 1)
