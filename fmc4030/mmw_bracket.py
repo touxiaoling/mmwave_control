@@ -1,5 +1,6 @@
 import time
 import math
+import signal
 from contextlib import contextmanager
 from threading import Lock
 
@@ -63,6 +64,7 @@ class MMWBraket:
             self.bc.open_device()
 
         self._break_lock_flag = True
+        signal.signal(signal.SIGINT,self.signal_handler)
 
     def __enter__(self):
         self.bc.__enter__()
@@ -90,9 +92,10 @@ class MMWBraket:
             self.bc.set_output(io_id, 1)
             try:
                 yield
-            finally:
-                self.bc.set_output(io_id, 0)
-                self._break_unlock_flag = True
+            except Exception as e:
+                raise e
+            self.bc.set_output(io_id, 0)
+            self._break_unlock_flag = True
         else:
             yield
 
@@ -178,3 +181,25 @@ class MMWBraket:
             # time.sleep(12)
         self.x_pos = 0.0
         self.y_pos = 0.0
+
+    def signal_handler(self, signum, frame):
+        print("bracket KeyboardInterrupt processing.")
+        ms = self.bc.get_machine_status()
+        for i, status in enumerate(ms.axis_status):
+            if status.running:
+                self.bc.stop_single_axis(i)
+        for i in self.axis_status_iter():
+            pass
+        ms = self.bc.get_machine_status()
+
+        x_pos = ms.real_pos[self.x_axis_id]
+        y_pos = ms.real_pos[self.y_axis_id]
+
+        self.x_pos = -x_pos if self.x_reverse else x_pos
+        self.y_pos = -y_pos if self.y_reverse else y_pos
+
+        self.jog_x(0)
+        self.jog_y(0)
+
+        print("bracket KeyboardInterrupt processing done.")
+        raise KeyboardInterrupt
