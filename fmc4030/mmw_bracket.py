@@ -159,7 +159,7 @@ class MMWBraket:
     def home_axis(self, home_axis=True, x_reverse_corrector=False, y_reverse_corrector=False):
         # x_pos = self.x_pos_limit if x_reverse_corrector else 0
         # y_pos = self.y_pos_limit if y_reverse_corrector else 0
-        relative_len = 100
+        relative_len = 50
 
         with self.break_conrtol():
             pos = self._real_pos(relative_len, self.x_reverse)
