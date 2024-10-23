@@ -9,9 +9,10 @@ from . import fmc4030lib as flib
 
 
 def cal_running_time(length, speed, acc, dec):
+    length = abs(length)
+
     t_acc_dec = speed / acc + speed / dec  # 刚好加速到speed就减速的总时间
     min_length = t_acc_dec * speed / 2  # 最小移动距离
-    length = abs(length)
     if length < min_length:
         running_t = t_acc_dec * math.sqrt(length / min_length)  # 如果小于最小移动距离，就根据相似三角形计算时间
     else:
@@ -64,7 +65,7 @@ class Braket:
             self.bc.open_device()
 
         self._break_lock_flag = True
-        signal.signal(signal.SIGINT,self.signal_handler)
+        signal.signal(signal.SIGINT, self.signal_handler)
 
     def __enter__(self):
         self.bc.__enter__()
@@ -121,12 +122,12 @@ class Braket:
         self.x_pos = pos
 
     def jog_x(self, pos: float, speed: float = None, acc: float = None, dec: float = None):
-        '''移动x轴到指定位置
+        """移动x轴到指定位置
         pos： 绝对位置坐标，0～970
         speed: 移动速度，默认为200，太快会驱动力不够
         acc: 加速度，默认为200
         dec: 减速度，默认为200
-        '''
+        """
         if not 0 <= pos <= self.x_pos_limit:
             raise ValueError(f"x pos {pos} out limit 0~{self.x_pos_limit}")
         speed = speed or self.x_speed
@@ -144,12 +145,12 @@ class Braket:
         self.x_pos = pos
 
     def jog_y(self, pos: float, speed: float = None, acc: float = None, dec: float = None):
-        '''移动y轴到指定位置
+        """移动y轴到指定位置
         pos： 绝对位置坐标，0～1970
         speed: 移动速度，默认为150，太快会驱动力不够
         acc: 加速度，默认为200
         dec: 减速度，默认为200
-        '''
+        """
         if not 0 <= pos <= self.y_pos_limit:
             raise ValueError(f"y pos {pos} out limit 0~{self.y_pos_limit}")
         speed = speed or self.y_speed
@@ -169,8 +170,7 @@ class Braket:
         self.y_pos = pos
 
     def home_axis(self, home_axis=True, x_reverse_corrector=False, y_reverse_corrector=False):
-        '''归零x,y轴，重新校准零点位置
-        '''
+        """归零x,y轴，重新校准零点位置"""
         # x_pos = self.x_pos_limit if x_reverse_corrector else 0
         # y_pos = self.y_pos_limit if y_reverse_corrector else 0
         relative_len = 50
