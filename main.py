@@ -1,8 +1,8 @@
 
-from fmc4030 import FMC4030,MMWBraket
+from fmc4030 import FMC4030,Braket
 
 fmc4030 = FMC4030()
-with MMWBraket(fmc4030) as mmwb:
+with Braket(fmc4030) as mmwb:
 
     mmwb.home_axis()
     mmwb.jog_x(100)

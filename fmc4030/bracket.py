@@ -20,7 +20,7 @@ def cal_running_time(length, speed, acc, dec):
     return running_t
 
 
-class MMWBraket:
+class Braket:
     def __init__(
         self,
         bc: FMC4030,
