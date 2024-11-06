@@ -165,3 +165,10 @@ cython_debug/
 *_try.py
 !/fmc4030/lib
 !/fmc4030/lib/ubuntu/x64/libFMC4030-Lib.so
+/mmwave_data
+/output
+/code_data
+/*.png
+/*.npz
+/*_try.ipynb
+/mmwtrace
