@@ -172,3 +172,4 @@ cython_debug/
 /*.npz
 /*_try.ipynb
 /mmwtrace
+/.vscode
