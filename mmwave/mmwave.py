@@ -2,6 +2,8 @@ import time
 import subprocess
 from contextlib import contextmanager
 from pathlib import Path
+import tomllib
+
 from .util import subprocess_popen
 from . import mmwcas
 
@@ -10,7 +12,12 @@ class mmwave:
     def __init__(self, config_dict: dict = None):
         self.config_dict = config_dict or dict()
 
-    def configure(self, config: dict = None):
+    def read_config(self,config_file:Path):
+        with config_file.open("rb") as file:
+            config = tomllib.load(file)
+        self.config_dict.update(config)
+
+    def initial(self, config: dict = None):
         if config:
             config = {**self.config_dict, **config}
         else:
