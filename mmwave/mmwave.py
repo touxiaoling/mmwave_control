@@ -9,10 +9,11 @@ from . import mmwcas
 
 
 class mmwave:
-    def __init__(self, config_dict: dict = None):
+    def __init__(self, data_dir: Path, config_dict: dict = None):
         self.config_dict = config_dict or dict()
+        self.data_dir = data_dir
 
-    def read_config(self,config_file:Path):
+    def read_config(self, config_file: Path):
         with config_file.open("rb") as file:
             config = tomllib.load(file)
         self.config_dict.update(config)
@@ -28,8 +29,8 @@ class mmwave:
             raise RuntimeError(f"mmw_init failed with status {status}")
         return self
 
-    def start_record(self, datadir: str):
-        if status := mmwcas.mmw_arming_tda(datadir):
+    def start_record(self):
+        if status := mmwcas.mmw_arming_tda(str(self.data_dir)):
             raise RuntimeError(f"mmw_arming_tda failed with status {status}")
         time.sleep(2)
         if status := mmwcas.mmw_start_frame():
