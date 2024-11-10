@@ -46,8 +46,8 @@ class MMWave:
         return self
 
     @contextmanager
-    def record(self, datadir: str):
-        self.start_record(datadir)
+    def record(self):
+        self.start_record()
         yield
         self.stop_record()
 
