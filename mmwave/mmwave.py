@@ -3,6 +3,7 @@ import subprocess
 from contextlib import contextmanager
 from pathlib import Path
 import tomllib
+import retry
 
 from .util import subprocess_popen
 from . import mmwcas
@@ -29,6 +30,7 @@ class MMWave:
             raise RuntimeError(f"mmw_init failed with status {status}")
         return self
 
+    @retry.retry(tries=3,delay=1)
     def start_record(self):
         if status := mmwcas.mmw_arming_tda(str(self.data_dir)):
             raise RuntimeError(f"mmw_arming_tda failed with status {status}")
@@ -37,6 +39,7 @@ class MMWave:
             raise RuntimeError(f"mmw_start_frame failed with status {status}")
         return self
 
+    @retry.retry(tries=3,delay=1)
     def stop_record(self):
         if status := mmwcas.mmw_stop_frame():
             raise RuntimeError(f"mmw_stop_frame failed with status {status}")
