@@ -8,7 +8,7 @@ from .util import subprocess_popen
 from . import mmwcas
 
 
-class mmwave:
+class MMWave:
     def __init__(self, data_dir: Path, config_dict: dict = None):
         self.config_dict = config_dict or dict()
         self.data_dir = data_dir
