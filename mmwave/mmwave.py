@@ -33,9 +33,12 @@ class MMWave:
         if status := mmwcas.mmw_arming_tda(str(self.data_dir)):
             raise RuntimeError(f"mmw_arming_tda failed with status {status}")
         time.sleep(2)
-        for i in range(10):
+        for i in range(3):
             if status := mmwcas.mmw_start_frame():
                 print("start frame fail")
+                time.sleep(2)
+                if status := mmwcas.mmw_stop_frame():
+                    raise RuntimeError(f"mmw_stop_frame failed with status {status}")
                 time.sleep(2)
             else:
                 break
