@@ -9,9 +9,8 @@ from . import mmwcas
 
 
 class MMWave:
-    def __init__(self, data_dir: Path, config_dict: dict = None):
+    def __init__(self, config_dict: dict = None):
         self.config_dict = config_dict or dict()
-        self.data_dir = data_dir
 
     def read_config(self, config_file: Path):
         with config_file.open("rb") as file:
