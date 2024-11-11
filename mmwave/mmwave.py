@@ -29,16 +29,18 @@ class MMWave:
             raise RuntimeError(f"mmw_init failed with status {status}")
         return self
 
-    @retry()
     def start_record(self):
         if status := mmwcas.mmw_arming_tda(str(self.data_dir)):
             raise RuntimeError(f"mmw_arming_tda failed with status {status}")
         time.sleep(2)
-        if status := mmwcas.mmw_start_frame():
-            raise RuntimeError(f"mmw_start_frame failed with status {status}")
+        for i in range(10):
+            if status := mmwcas.mmw_start_frame():
+                print("start frame fail")
+                time.sleep(2)
+            else:
+                break
         return self
 
-    @retry()
     def stop_record(self):
         if status := mmwcas.mmw_stop_frame():
             raise RuntimeError(f"mmw_stop_frame failed with status {status}")
