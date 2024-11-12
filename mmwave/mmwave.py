@@ -4,8 +4,25 @@ from contextlib import contextmanager
 from pathlib import Path
 import tomllib
 
-from .util import subprocess_popen,retry
+from .util import subprocess_popen, retry
 from . import mmwcas
+
+
+class MMWaveCmd:
+    def __init__(self, config_file: Path = None):
+        self.config_file = config_file
+
+    @contextmanager
+    def start_record(self, data_dir: str, record_time: int):
+        cmd = ["mmwave"]
+        if self.config_file:
+            cmd.extend(["-f", f"{self.config_file}"])
+        cmd.extend(["--configure", "-d", f"{data_dir}", "--record", "--time", f"{record_time}"])
+        for line in subprocess_popen(cmd):
+            print(line)
+            if "Framing" in line:
+                print("capture Framing")
+                yield self
 
 
 class MMWave:
@@ -28,7 +45,7 @@ class MMWave:
             raise RuntimeError(f"mmw_init failed with status {status}")
         return self
 
-    def start_record(self,data_dir:str):
+    def start_record(self, data_dir: str):
         if status := mmwcas.mmw_arming_tda(data_dir):
             raise RuntimeError(f"mmw_arming_tda failed with status {status}")
         time.sleep(2)
@@ -55,7 +72,7 @@ class MMWave:
         return self
 
     @contextmanager
-    def record(self,data_dir:str):
+    def record(self, data_dir: str):
         self.start_record(data_dir)
         yield
         self.stop_record()

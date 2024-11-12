@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 from pathlib import Path
-
+from tqdm import tqdm,trange
 import numpy as np
 
 
@@ -38,11 +38,11 @@ def get_bin_info(idx_file: Path):
 
 def get_info(idx_file: Path):
     header, data = get_bin_info(idx_file)
-    timestamps = np.array([log[-2] for log in data])
+    timestamps = np.asarray([log[-2] for log in data])
     return header[3], header[4], timestamps
 
 
-def load(inputdir: Path, device: str):
+def load_bin_info(inputdir: Path, device: str):
     """Load the recordings of the radar chip provided in argument.
 
     Arguments:
@@ -53,13 +53,11 @@ def load(inputdir: Path, device: str):
         Dictionary containing the data and index files
     """
     inputdir = Path(inputdir)
-    recordings = {
-        "data": sorted(inputdir.glob(f"{device}*_data.bin")),
-        "idx": sorted(inputdir.glob(f"{device}*_idx.bin")),
-    }
-    if len(recordings["data"]) == 0 or len(recordings["idx"]) == 0:
+    data=sorted(inputdir.glob(f"{device}*_data.bin"))
+    idx=sorted(inputdir.glob(f"{device}*_idx.bin"))
+    if len(data) == 0 or len(idx) == 0:
         raise FileNotFoundError(f"No data or index files found for {device} in the input directory")
-    elif len(recordings["data"]) != len(recordings["idx"]):
+    elif len(data) != len(idx):
         print(
             f"[ERROR]: Missing {device} data or index file!\n"
             "Please check your recordings!"
@@ -67,10 +65,10 @@ def load(inputdir: Path, device: str):
             "'*data.bin' and '*.idx.bin' files."
         )
         raise ValueError("Number of data and index files do not match")
-    return recordings
+    return tuple(zip(data, idx))
 
 
-def toframe(mf: Path, sf0: Path, sf1: Path, sf2: Path, ns: int, nc: int, nf: int, output: str = ".", start_idx: int = 0):
+def from_bin_file(bin_file: Path, frames_num: int, samples_num: int, chrips_num: int):
     """Re-Format the raw radar ADC recording.
 
     The raw recording from each device is merge together to create
@@ -104,79 +102,72 @@ def toframe(mf: Path, sf0: Path, sf1: Path, sf2: Path, ns: int, nc: int, nf: int
                 - In-phase signal (I)
                 - Quadrature signal (Q)
     """
-    nwave = 2
-    nchip = 4
-    ntx = 3
-    nrx = 4
-    nf_skip = 0
-    fk = start_idx
+    nwave = 2  # I and Q
+    devices_num = 4  # 级联设备数目
+    ntx = 3  # 发射天线数目
+    nrx = 4  # 接收天线数目
 
-    nitems = nwave * ns * nc * nrx * ntx * nchip
+    nitems = chrips_num * ntx * devices_num * samples_num * nrx * nwave
 
-    def load_dev(dev_file: Path, offset: int):
-        dev = np.fromfile(dev_file, dtype=np.int16, count=nitems, offset=offset)
-        dev = dev.reshape(nc, ntx * nchip, ns, nrx, 2)
-        dev = np.transpose(dev, (1, 3, 0, 2, 4))
-        return dev
-
-    for fidx in range(nf_skip, nf):
+    final_res = None
+    bin_file_array = np.fromfile(bin_file, dtype=np.int16)
+    #print(bin_file_array.shape,frames_num*chrips_num,nitems,frames_num*nitems,bin_file_array.shape[0]/frames_num/nitems)
+    #return bin_file_array
+    for fidx in trange(frames_num):
         offset = fidx * nitems * 2
 
-        dev1 = load_dev(mf, offset)
-        dev2 = load_dev(sf0, offset)
-        dev3 = load_dev(sf1, offset)
-        dev4 = load_dev(sf2, offset)
+        dev = np.fromfile(bin_file, dtype=np.int16, count=nitems, offset=offset)
+        dev = dev.reshape(chrips_num, ntx * devices_num, samples_num, nrx, nwave)
+        dev = np.transpose(dev, (0, 1, 3, 2, 4))  # (chrips_num,ntx * nchip, nrx, samples_num, 2)
+        dev_complex = np.zeros_like(dev[:,:,:,:,0], dtype=np.complex64)
+        dev_complex.real = dev[:,:,:,:,0]
+        dev_complex.imag = dev[:,:,:,:,1]
 
-        frame = np.zeros((nchip * ntx, nrx * nchip, nc, ns, 2))
-        print(frame.shape)
-        frame[:, 0:4, :, :] = dev4
-        frame[:, 4:8, :, :] = dev1
-        frame[:, 8:12, :, :] = dev3
-        frame[:, 12:16, :, :] = dev2
-
-        # Name for saving the frame
-        fpath = f"{output}/frame_{fk:04d}.npz"
-        np.savez(fpath, frame)
-        #frame.astype(np.int16).tofile(fpath)
-        fk += 1
-
+        #print(dev_complex.shape,dev_complex.dtype)
+        if final_res is None:
+            final_res = dev_complex
+        else:
+            final_res = np.concatenate((final_res,dev_complex), axis=0)
     # Return the index of the last frame generated
-    return fk - 1
+    return final_res
 
 
 if __name__ == "__main__":
     from rich.console import Console
     import matplotlib.pyplot as plt
-    from pathlib import Path
-    from tqdm import tqdm
+
     print = Console().print
-    output_dir = Path("../output")
-    ns = 256  # number of ADC samples per chirp
-    bc = 16  # number of chrips per frame
+    samples_num = 256  # number of ADC samples per chirp
+    chrips_num = 16  # number of chrips per frame
+    #input_dir = Path("../outdoor_2024_11_11_19_44_00")
     input_dir = Path("../mmwave_data")
-    master_idx = input_dir / "master_0001_idx.bin"
-    info = get_bin_info(master_idx)
-    print(info[0])
-    print(info[1])
+    master = load_bin_info(input_dir, "master")
+    slave1 = load_bin_info(input_dir, "slave1")
+    slave2 = load_bin_info(input_dir, "slave2")
+    slave3 = load_bin_info(input_dir, "slave3")
 
+    frame_files = input_dir / "master_frame.npz"
+    time_stamp_files = input_dir / "timestamps.txt"
 
-    frame_files = sorted(output_dir.glob("frame_*.npz"))
-    frame_array = []
-    for frame_file in tqdm(frame_files):
-        frame:np.ndarray = np.load(frame_file)["arr_0"]
-        frame_i = frame[0,0,:,:,0]
-        frame_q = frame[0,0,:,:,1]
-        frame_complex = np.zeros_like(frame_i, dtype=np.complex64)
-        frame_complex.real = frame_i
-        frame_complex.imag = frame_q
-        for i in range(bc):
-            frame_array.append(frame_complex[i])
-
-    frame_array = np.array(frame_array)
-    np.savez("../frame_array.npz", frame_array)
+    all_frames = None
+    all_times = None
+    for bin_idx_file in master:
+        bin_file=bin_idx_file[0]
+        idx_file = bin_idx_file[1]
+        print(bin_file,idx_file)
+        frames_num, _, timelogs = get_info(idx_file)
+        
+        frame_array = from_bin_file(bin_file, frames_num, samples_num, chrips_num)
+        if all_frames is None:
+            all_frames = frame_array
+            all_times = timelogs
+        else:
+            all_frames = np.concatenate((all_frames, frame_array), axis=0)
+            all_times = np.concatenate((all_times, timelogs),axis=0)
+    print(all_frames.shape,all_times.shape)
+    #np.savez(frame_files, all_frames,all_times)
 
     # print(frame_1)
-    
 
     # master = load(input_dir, "master")
     # slave1 = load(input_dir, "slave1")
