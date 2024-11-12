@@ -173,3 +173,4 @@ cython_debug/
 /*_try.ipynb
 /mmwtrace
 /.vscode
+/outdoor_*
