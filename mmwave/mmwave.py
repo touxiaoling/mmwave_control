@@ -13,7 +13,7 @@ class MMWaveCmd:
         self.config_file = config_file
 
     @contextmanager
-    def start_record(self, data_dir: str, record_time: int):
+    def record(self, data_dir: str, record_time: int):
         cmd = ["mmwave"]
         if self.config_file:
             cmd.extend(["-f", f"{self.config_file}"])
