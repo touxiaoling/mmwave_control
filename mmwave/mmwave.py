@@ -24,7 +24,7 @@ class MMWaveCmd:
                 print("capture Framing")
                 yield self
 
-    def sync_time(self, start_time: float):
+    def _sync_time(self, start_time: float):
         start_cmd = ["stdbuf", "-oL"]
         cmd = ["ssh", "root@192.168.33.180", "cat /proc/uptime"]
         start_cmd.extend(cmd)
@@ -35,6 +35,12 @@ class MMWaveCmd:
         device_time = float(device_time.decode().strip().split()[0])
         time_offset = pc_time - start_time - device_time
         return time_offset
+
+    def sync_time(self, start_time, sync_time=3):
+        offset = []
+        for i in range(sync_time):
+            offset.append(self._sync_time(start_time))
+        return sum(offset) / len(offset)
 
     def get(self, datadir: str, savedir: str):
         cmd = f"scp -r -O root@192.168.33.180:{datadir} {savedir}"
