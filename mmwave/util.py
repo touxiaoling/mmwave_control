@@ -1,4 +1,5 @@
 import subprocess
+from subprocess import PIPE
 import functools
 import time
 from pathlib import Path
@@ -8,7 +9,7 @@ import toml
 def subprocess_popen(cmd):
     start_cmd = ["stdbuf", "-oL"]
     start_cmd.extend(cmd)
-    with subprocess.Popen(start_cmd, capture_output=True, bufsize=0) as process:
+    with subprocess.Popen(start_cmd, stdout=PIPE, stderr=PIPE, bufsize=0) as process:
         while True:
             line = process.stdout.readline().decode().strip()
             if not line and process.poll() is not None:
