@@ -36,7 +36,7 @@ class MMWaveCmd:
         time_offset = pc_time - start_time - device_time
         return time_offset
 
-    def sync_time(self, start_time, sync_time=3):
+    def sync_time(self, start_time, sync_time=10):
         offset = []
         for i in range(sync_time):
             offset.append(self._sync_time(start_time))
