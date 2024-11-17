@@ -80,3 +80,15 @@ class MMWave:
     def get(self, datadir: str, savedir: str):
         cmd = f"scp -r -O root@192.168.33.180:{datadir} {savedir}"
         return subprocess.run(cmd)
+
+    def sync_time(self, start_time: float):
+        start_cmd = ["stdbuf", "-oL"]
+        cmd = ["ssh", "root@192.168.33.180", "cat /proc/uptime"]
+        start_cmd.extend(cmd)
+        with subprocess.Popen(start_cmd, stdout=subprocess.PIPE, bufsize=0) as process:
+            device_time = process.stdout.readline()
+            pc_time = time.time()
+
+        device_time = float(device_time.decode().strip().split()[0])
+        time_offset = pc_time - start_time - device_time
+        return time_offset
