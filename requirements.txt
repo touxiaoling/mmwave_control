@@ -1,1 +1,4 @@
 pydantic
+numpy
+tqdm
+rich
