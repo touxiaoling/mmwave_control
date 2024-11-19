@@ -99,8 +99,8 @@ def load_bin_file(bin_file: Path, samples_num: int, chrips_num: int):
     assert bin_file_array.shape[0] % nitems == 0
 
     res = bin_file_array.reshape(-1, nitems)
-    res = res.reshape(-1, ntx * devices_num, samples_num, nrx, nwave)
-    res = np.transpose(res, (0, 1, 3, 2, 4))  # (chrips_num,ntx * nchip, nrx, samples_num, 2)
+    res = res.reshape(-1, ntx * devices_num, samples_num, nrx, nwave)  # (chrips_num , ntx * devices_num, samples_num , nrx , 2)
+    res = np.transpose(res, (0, 1, 3, 2, 4))  # (chrips_num, ntx * devices_num, nrx, samples_num, 2)
     return res
 
 
@@ -119,7 +119,9 @@ def temp_memmap(dtype, shape: tuple):
 @contextmanager
 def turn_all_frame(input_dir: Path, samples_num: int, chrips_num: int):
     all_bin_files = []
-    for i, device_name in enumerate(("slave3", "master", "slave2", "slave1")):
+    device_list = ["slave3"]#,"master", "slave2", "slave1"]
+    device_num = len(device_list)
+    for i, device_name in enumerate(device_list):
         all_bin_files.append([])
         for j, bin_file_path in enumerate(get_bin_file_path(input_dir, device_name)):
             bin_file = load_bin_file(bin_file_path, samples_num, chrips_num)
@@ -128,7 +130,7 @@ def turn_all_frame(input_dir: Path, samples_num: int, chrips_num: int):
     frame_num = np.sum([bin_file.shape[0] for bin_file in all_bin_files[0]])
 
     newshape = [frame_num, *(bin_file.shape[1:])]
-    newshape[2] *= 4
+    newshape[2] *= device_num
 
     with temp_memmap(np.int16, newshape) as all_frames:
         for ii in range(i + 1):
@@ -143,17 +145,72 @@ def turn_all_frame(input_dir: Path, samples_num: int, chrips_num: int):
         yield all_frames
 
 
+def get_data_idx(input_dir: Path, offset_time: float, frame_periodicity: float,offet_idx = -178):
+    idxs_path = sorted(input_dir.glob("master*_idx.bin"))
+    all_frame_time = []
+    for idx_path in idxs_path:
+        header_info, frame_info = get_idx_info(idx_path)
+        frame_time = np.array([i[-2] for i in frame_info])
+        all_frame_time.append(frame_time)
+
+    data_idx = np.concatenate(all_frame_time)
+
+    #data_idx = (data_idx - data_idx[0])/1000 / frame_periodicity
+    data_idx = (data_idx + offset_time*1e6)/1000 / frame_periodicity
+
+    data_idx = np.astype(np.around(data_idx), int)+offet_idx
+    print(data_idx)
+    return data_idx
+
+
+def get_bracket_idx(input_dir: Path, x_sample_num=201,frame_periodicity=40):
+    time_info = np.loadtxt(input_dir / "timestamps.txt")
+    offset_time = time_info[-1][0]
+    time_info = time_info[0:-1]
+    bracket_idx = []
+    for t0, t1 in time_info:
+        start = t0 * 1000 / frame_periodicity
+        end = start + x_sample_num
+        bracket_idx.append((start, end))
+    bracket_idx = np.array(bracket_idx)
+    bracket_idx = np.astype(np.around(bracket_idx), int)
+    return bracket_idx, offset_time
+
+
 @contextmanager
-def get_mimo_idx(all_frames: np.ndarray, time_info: np.ndarray, samples_time=40, samples_num=201):
-    new_shape = (time_info.shape[0], samples_num, *(all_frames.shape[1:]))
+def get_mimo_array(all_frames: np.ndarray, bracket_idx: np.ndarray, data_idx: np.ndarray,x_sample_num:int):
+    y_sample_num = bracket_idx.shape[0]
+    new_shape = (y_sample_num, x_sample_num, *(all_frames.shape[1:]))
 
     with temp_memmap(np.int16, new_shape) as mmw_array:
-        for i in trange(time_info.shape[0]):
-            start = int(time_info[i, 0] * 1000 / samples_time)
-            end = start + samples_num
-            # end = int(time_info[i,1]*1000/samples_time)
-            mmw_array[i, :] = all_frames[start:end]
+        for i in trange(y_sample_num):
+            start, end = bracket_idx[i]
+            start, end = np.searchsorted(data_idx, [start, end])
+
+            line_frames = all_frames[start:end]
+
+            mmw_idx = data_idx[start:end] - data_idx[start]
+            mmw_array[i, mmw_idx] = line_frames
+
         yield mmw_array
+
+
+def check_data_idx(input_dir: Path):
+    for idx_num in ["master", "slave1", "slave2", "slave3"]:
+        idxs_path = sorted(input_dir.glob(f"{idx_num}*_idx.bin"))
+        all_frame_time = []
+        for idx_path in idxs_path:
+            header_info, frame_info = get_idx_info(idx_path)
+            frame_time0 = frame_info[0][-2] * 1e-6
+            frame_time1 = frame_info[-1][-2] * 1e-6
+            print(frame_time0, frame_time1)
+            frame_time = np.array([i[-2] for i in frame_info]) * 1e-6
+            all_frame_time.append(frame_time)
+        frame_time = np.concatenate(all_frame_time)
+        dframe_time = frame_time[1:] - frame_time[:-1]
+        plt.plot(dframe_time)
+    plt.grid()
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -162,12 +219,17 @@ if __name__ == "__main__":
     from tqdm import trange
 
     print = Console().print
-    samples_num = 256  # number of ADC samples per chirp
+    adc_samples_num = 256  # number of ADC samples per chirp
     chrips_num = 1  # number of chrips per frame
+    frame_periodicity = 40  # stampe frame time in ms
+    x_sample_num = 201
 
-    input_dir = Path("../outdoor_20241112_192215")
-    time_info = np.loadtxt(input_dir / "timestamps.txt")
+    input_dir = Path("../outdoor_20241117_194510")
 
-    with turn_all_frame(input_dir, samples_num, chrips_num) as all_frames:
-        with get_mimo_idx(all_frames, time_info) as mmw_array:
+    bracket_idx, offset_time = get_bracket_idx(input_dir,x_sample_num,frame_periodicity)
+    data_idx = get_data_idx(input_dir, offset_time, frame_periodicity)
+    with turn_all_frame(input_dir, adc_samples_num, chrips_num) as all_frames:
+        with get_mimo_array(all_frames, bracket_idx, data_idx,x_sample_num) as mmw_array:
             np.save(input_dir / "mmw_array.npy", mmw_array)
+
+#    print(get_idx_info(input_dir / "slave1_0000_idx.bin"))
