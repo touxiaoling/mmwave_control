@@ -226,7 +226,7 @@ if __name__ == "__main__":
 
     bracket_idx, offset_time = get_bracket_idx(input_dir, x_sample_num, frame_periodicity)
 
-    offset_time = -0.960  # 手动偏移校准
+    offset_time = -0.920  # 手动偏移校准
 
     data_idx = get_data_idx(input_dir, offset_time, frame_periodicity)
     print(data_idx)
