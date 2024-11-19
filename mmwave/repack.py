@@ -1,4 +1,3 @@
-from datetime import timedelta, datetime
 from contextlib import contextmanager
 from pathlib import Path
 import numpy as np
@@ -119,7 +118,7 @@ def temp_memmap(dtype, shape: tuple):
 @contextmanager
 def turn_all_frame(input_dir: Path, samples_num: int, chrips_num: int):
     all_bin_files = []
-    device_list = ["slave3"]#,"master", "slave2", "slave1"]
+    device_list = ["slave3", "master", "slave2", "slave1"]
     device_num = len(device_list)
     for i, device_name in enumerate(device_list):
         all_bin_files.append([])
@@ -145,7 +144,7 @@ def turn_all_frame(input_dir: Path, samples_num: int, chrips_num: int):
         yield all_frames
 
 
-def get_data_idx(input_dir: Path, offset_time: float, frame_periodicity: float,offet_idx = -178):
+def get_data_idx(input_dir: Path, offset_time: float, frame_periodicity: float, offet_idx=-178):
     idxs_path = sorted(input_dir.glob("master*_idx.bin"))
     all_frame_time = []
     for idx_path in idxs_path:
@@ -155,15 +154,15 @@ def get_data_idx(input_dir: Path, offset_time: float, frame_periodicity: float,o
 
     data_idx = np.concatenate(all_frame_time)
 
-    #data_idx = (data_idx - data_idx[0])/1000 / frame_periodicity
-    data_idx = (data_idx + offset_time*1e6)/1000 / frame_periodicity
+    # data_idx = (data_idx - data_idx[0])/1000 / frame_periodicity
+    data_idx = (data_idx + offset_time * 1e6) / 1000 / frame_periodicity
 
-    data_idx = np.astype(np.around(data_idx), int)+offet_idx
+    data_idx = np.astype(np.around(data_idx), int) + offet_idx
     print(data_idx)
     return data_idx
 
 
-def get_bracket_idx(input_dir: Path, x_sample_num=201,frame_periodicity=40):
+def get_bracket_idx(input_dir: Path, x_sample_num=201, frame_periodicity=40):
     time_info = np.loadtxt(input_dir / "timestamps.txt")
     offset_time = time_info[-1][0]
     time_info = time_info[0:-1]
@@ -178,7 +177,7 @@ def get_bracket_idx(input_dir: Path, x_sample_num=201,frame_periodicity=40):
 
 
 @contextmanager
-def get_mimo_array(all_frames: np.ndarray, bracket_idx: np.ndarray, data_idx: np.ndarray,x_sample_num:int):
+def get_mimo_array(all_frames: np.ndarray, bracket_idx: np.ndarray, data_idx: np.ndarray, x_sample_num: int):
     y_sample_num = bracket_idx.shape[0]
     new_shape = (y_sample_num, x_sample_num, *(all_frames.shape[1:]))
 
@@ -226,10 +225,10 @@ if __name__ == "__main__":
 
     input_dir = Path("../outdoor_20241117_194510")
 
-    bracket_idx, offset_time = get_bracket_idx(input_dir,x_sample_num,frame_periodicity)
+    bracket_idx, offset_time = get_bracket_idx(input_dir, x_sample_num, frame_periodicity)
     data_idx = get_data_idx(input_dir, offset_time, frame_periodicity)
     with turn_all_frame(input_dir, adc_samples_num, chrips_num) as all_frames:
-        with get_mimo_array(all_frames, bracket_idx, data_idx,x_sample_num) as mmw_array:
+        with get_mimo_array(all_frames, bracket_idx, data_idx, x_sample_num) as mmw_array:
             np.save(input_dir / "mmw_array.npy", mmw_array)
 
 #    print(get_idx_info(input_dir / "slave1_0000_idx.bin"))
