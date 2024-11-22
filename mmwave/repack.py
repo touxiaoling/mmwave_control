@@ -68,7 +68,7 @@ def get_bin_file_path(inputdir: Path, device: str):
     return data
 
 
-def load_bin_file(bin_file: Path, samples_num: int, chrips_num: int,chrip_idx:int = 1):
+def load_bin_file(bin_file: Path, samples_num: int, chrips_num: int, chrip_idx: int = 1):
     """Re-Format the raw radar ADC recording.
     The raw recording from each device is merge together to create
     separate recording frames corresponding to the MIMO configuration.
@@ -94,55 +94,16 @@ def load_bin_file(bin_file: Path, samples_num: int, chrips_num: int,chrip_idx:in
     nrx = 4  # 接收天线数目
     nitems = chrips_num * ntx * devices_num * samples_num * nrx * nwave
 
-    bin_file_array = np.memmap(bin_file, dtype=np.int16, mode="r")
+    # bin_file_array = np.memmap(bin_file, dtype=np.int16, mode="r")
+    bin_file_array = np.fromfile(bin_file, dtype=np.int16)
     assert bin_file_array.shape[0] % nitems == 0
 
     res = bin_file_array.reshape(-1, nitems)
-    res = res.reshape(-1, chrips_num, ntx * devices_num, samples_num, nrx, nwave)
-    # (frame , chrips_num , ntx * devices_num , samples_num , nrx , 2)
-    res = np.transpose(res, (0, 1, 2, 4, 3, 5)) 
-    return res[:,chrip_idx]
+    res = bin_file_array.reshape(-1, chrips_num, ntx * devices_num, samples_num, nrx, nwave)
+    #(frame , chrips_num , ntx * devices_num , samples_num , nrx , 2)
 
-
-@contextmanager
-def temp_memmap(dtype, shape: tuple):
-    with NamedTemporaryFile(suffix=".bin") as temp_file:
-        temp_file_path = Path(temp_file.name)
-        print(temp_file_path)
-        temp_array = np.memmap(temp_file_path, dtype=dtype, mode="w+", shape=shape)
-        del temp_array
-        temp_array = np.memmap(temp_file_path, dtype=dtype, mode="c", shape=shape)
-        yield temp_array
-        del temp_array
-
-
-@contextmanager
-def turn_all_frame(input_dir: Path, samples_num: int, chrips_num: int):
-    all_bin_files = []
-    device_list = ["slave3", "master", "slave2", "slave1"]
-    device_num = len(device_list)
-    for i, device_name in enumerate(device_list):
-        all_bin_files.append([])
-        for j, bin_file_path in enumerate(get_bin_file_path(input_dir, device_name)):
-            bin_file = load_bin_file(bin_file_path, samples_num, chrips_num)
-            all_bin_files[i].append(bin_file)
-
-    frame_num = np.sum([bin_file.shape[0] for bin_file in all_bin_files[0]])
-
-    newshape = [frame_num, *(bin_file.shape[1:])]
-    newshape[2] *= device_num
-
-    with temp_memmap(np.int16, newshape) as all_frames:
-        for ii in range(i + 1):
-            frame_idx = 0
-            for jj in trange(j + 1):
-                channel_shape: tuple = all_bin_files[ii][jj].shape
-                frame_end = frame_idx + channel_shape[0]
-                all_frames[frame_idx:frame_end, :, 4 * ii : 4 * (ii + 1)] = all_bin_files[ii][jj]
-
-                frame_idx += channel_shape[0]
-
-        yield all_frames
+    res = np.transpose(res, (0, 1, 2, 4, 3, 5))
+    return res[:, chrip_idx]
 
 
 def get_data_idx(input_dir: Path, offset_time: float, frame_periodicity: float):
@@ -162,7 +123,7 @@ def get_data_idx(input_dir: Path, offset_time: float, frame_periodicity: float):
     return data_idx
 
 
-def get_bracket_idx(input_dir: Path, x_sample_num=201, frame_periodicity=40):
+def get_bracket_idx(input_dir: Path, x_sample_num:int, frame_periodicity:float):
     time_info = np.loadtxt(input_dir / "timestamps.txt")
     offset_time = time_info[-1][0]
     time_info = time_info[0:-1]
@@ -176,22 +137,57 @@ def get_bracket_idx(input_dir: Path, x_sample_num=201, frame_periodicity=40):
     return bracket_idx, offset_time
 
 
-@contextmanager
-def get_mimo_array(all_frames: np.ndarray, bracket_idx: np.ndarray, data_idx: np.ndarray, x_sample_num: int):
+def iter_all_frame(input_dir: Path, device_name: str, samples_num: int, chrips_num: int):
+    for bin_file_path in get_bin_file_path(input_dir, device_name):
+        bin_array = load_bin_file(bin_file_path, samples_num, chrips_num)
+        yield bin_array
+
+
+def turn_device_frame(
+    input_dir: Path,
+    device_name,
+    samples_num: int,
+    chrips_num: int,
+    bracket_idx: np.ndarray,
+    data_idx: np.ndarray,
+    x_sample_num: int,
+):
+    all_frames_iter = iter_all_frame(input_dir, device_name, samples_num, chrips_num)
+    bin_array = next(all_frames_iter)
+    bin_len = bin_array.shape[0]
+
     y_sample_num = bracket_idx.shape[0]
-    new_shape = (y_sample_num, x_sample_num, *(all_frames.shape[1:]))
+    array_shape = (y_sample_num, x_sample_num, *(bin_array.shape[1:]))
+    mmw_array = np.zeros(array_shape, dtype=bin_array.dtype)
+    frame_offset = 0
+    stop_iteration_flag = False
+    for i in trange(bracket_idx.shape[0]):
+        b_start, b_end = bracket_idx[i]
+        start, end = np.searchsorted(data_idx, [b_start, b_end])
 
-    with temp_memmap(np.int16, new_shape) as mmw_array:
-        for i in trange(y_sample_num):
-            start, end = bracket_idx[i]
-            start, end = np.searchsorted(data_idx, [start, end])
+        mmw_idx = data_idx[start:end] - b_start
 
-            line_frames = all_frames[start:end]
+        start, end = start - frame_offset, end - frame_offset
+        line_frames = bin_array[start:end]
 
-            mmw_idx = data_idx[start:end] - data_idx[start]
-            mmw_array[i, mmw_idx] = line_frames
+        if end >= bin_len:
+            try:
+                bin_array = next(all_frames_iter)
 
-        yield mmw_array
+                start, end = max(0, start - bin_len), end - bin_len
+                line_frames = np.concatenate((line_frames, bin_array[start:end]))
+
+                frame_offset += bin_len
+                bin_len = bin_array.shape[0]
+            except StopIteration:
+                stop_iteration_flag = True
+
+        mmw_array[i, mmw_idx] = line_frames
+
+        if stop_iteration_flag:
+            break
+
+    return mmw_array
 
 
 def check_data_idx(input_dir: Path):
@@ -223,7 +219,7 @@ if __name__ == "__main__":
     frame_periodicity = 25  # stampe frame time in ms
     x_sample_num = 401
 
-    input_dir = Path("../outdoor_20241121_152633")
+    input_dir = Path("../outdoor_20241121_143316")
 
     bracket_idx, offset_time = get_bracket_idx(input_dir, x_sample_num, frame_periodicity)
 
@@ -231,8 +227,9 @@ if __name__ == "__main__":
 
     data_idx = get_data_idx(input_dir, offset_time, frame_periodicity)
     print(data_idx)
-    with turn_all_frame(input_dir, adc_samples_num, chrips_num) as all_frames:
-        with get_mimo_array(all_frames, bracket_idx, data_idx, x_sample_num) as mmw_array:
-            np.save(input_dir / "mmw_array.npy", mmw_array)
+
+    for device_name in ["master", "slave1", "slave2", "slave3"]:
+        mmw_array = turn_device_frame(input_dir, device_name, adc_samples_num, chrips_num, bracket_idx, data_idx, x_sample_num)
+        np.save(input_dir / f"{device_name}_mmw_array.npy", mmw_array)
 
 #    print(get_idx_info(input_dir / "slave1_0000_idx.bin"))
