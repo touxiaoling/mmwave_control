@@ -68,7 +68,7 @@ def get_bin_file_path(inputdir: Path, device: str):
     return data
 
 
-def load_bin_file(bin_file: Path, samples_num: int, chrips_num: int):
+def load_bin_file(bin_file: Path, samples_num: int, chrips_num: int,chrip_idx:int = 1):
     """Re-Format the raw radar ADC recording.
     The raw recording from each device is merge together to create
     separate recording frames corresponding to the MIMO configuration.
@@ -98,9 +98,10 @@ def load_bin_file(bin_file: Path, samples_num: int, chrips_num: int):
     assert bin_file_array.shape[0] % nitems == 0
 
     res = bin_file_array.reshape(-1, nitems)
-    res = res.reshape(-1, ntx * devices_num, samples_num, nrx, nwave)  # (chrips_num , ntx * devices_num, samples_num , nrx , 2)
-    res = np.transpose(res, (0, 1, 3, 2, 4))  # (chrips_num, ntx * devices_num, nrx, samples_num, 2)
-    return res
+    res = res.reshape(-1, chrips_num, ntx * devices_num, samples_num, nrx, nwave)
+    # (frame , chrips_num , ntx * devices_num , samples_num , nrx , 2)
+    res = np.transpose(res, (0, 1, 2, 4, 3, 5)) 
+    return res[:,chrip_idx]
 
 
 @contextmanager
@@ -134,7 +135,7 @@ def turn_all_frame(input_dir: Path, samples_num: int, chrips_num: int):
     with temp_memmap(np.int16, newshape) as all_frames:
         for ii in range(i + 1):
             frame_idx = 0
-            for jj in range(j + 1):
+            for jj in trange(j + 1):
                 channel_shape: tuple = all_bin_files[ii][jj].shape
                 frame_end = frame_idx + channel_shape[0]
                 all_frames[frame_idx:frame_end, :, 4 * ii : 4 * (ii + 1)] = all_bin_files[ii][jj]
@@ -218,11 +219,11 @@ if __name__ == "__main__":
 
     print = Console().print
     adc_samples_num = 256  # number of ADC samples per chirp
-    chrips_num = 1  # number of chrips per frame
-    frame_periodicity = 40  # stampe frame time in ms
-    x_sample_num = 201
+    chrips_num = 4  # number of chrips per frame
+    frame_periodicity = 25  # stampe frame time in ms
+    x_sample_num = 401
 
-    input_dir = Path("../outdoor_20241117_194510")
+    input_dir = Path("../outdoor_20241121_152633")
 
     bracket_idx, offset_time = get_bracket_idx(input_dir, x_sample_num, frame_periodicity)
 
