@@ -36,13 +36,7 @@ def get_idx_info(idx_file: Path):
     return header, data
 
 
-# def get_info(idx_file: Path):
-#     header, data = get_bin_info(idx_file)
-#     timestamps = np.asarray([log[-2] for log in data])
-#     return header[3], header[4], timestamps
-
-
-def get_bin_file_path(inputdir: Path, device: str):
+def get_data_files_path(inputdir: Path, device: str):
     """Load the recordings of the radar chip provided in argument.
 
     Arguments:
@@ -57,15 +51,15 @@ def get_bin_file_path(inputdir: Path, device: str):
     idx = sorted(inputdir.glob(f"{device}*_idx.bin"))
     if len(data) == 0 or len(idx) == 0:
         raise FileNotFoundError(f"No data or index files found for {device} in the input directory")
-    # elif len(data) != len(idx):
-    #     print(
-    #         f"[ERROR]: Missing {device} data or index file!\n"
-    #         "Please check your recordings!"
-    #         "\nYou must have the same number of "
-    #         "'*data.bin' and '*.idx.bin' files."
-    #     )
-    # raise ValueError("Number of data and index files do not match")
-    return data
+    elif len(data) != len(idx):
+        print(
+            f"[ERROR]: Missing {device} data or index file!\n"
+            "Please check your recordings!"
+            "\nYou must have the same number of "
+            "'*data.bin' and '*.idx.bin' files."
+        )
+        raise ValueError("Number of data and index files do not match")
+    return data, idx
 
 
 def load_bin_file(bin_file: Path, samples_num: int, chrips_num: int, chrip_idx: int = 1):
@@ -100,14 +94,13 @@ def load_bin_file(bin_file: Path, samples_num: int, chrips_num: int, chrip_idx: 
 
     res = bin_file_array.reshape(-1, nitems)
     res = bin_file_array.reshape(-1, chrips_num, ntx * devices_num, samples_num, nrx, nwave)
-    #(frame , chrips_num , ntx * devices_num , samples_num , nrx , 2)
+    # (frame , chrips_num , ntx * devices_num , samples_num , nrx , 2)
 
     res = np.transpose(res, (0, 1, 2, 4, 3, 5))
     return res
 
 
-def get_data_idx(input_dir: Path, offset_time: float, frame_periodicity: float):
-    idxs_path = sorted(input_dir.glob("master*_idx.bin"))
+def get_data_idx(idxs_path: list, offset_time: float, frame_periodicity: float):
     all_frame_time = []
     for idx_path in idxs_path:
         header_info, frame_info = get_idx_info(idx_path)
@@ -123,7 +116,7 @@ def get_data_idx(input_dir: Path, offset_time: float, frame_periodicity: float):
     return data_idx
 
 
-def get_bracket_idx(input_dir: Path, x_sample_num:int, frame_periodicity:float):
+def get_bracket_idx(input_dir: Path, x_sample_num: int, frame_periodicity: float):
     time_info = np.loadtxt(input_dir / "timestamps.txt")
     offset_time = time_info[-1][0]
     time_info = time_info[0:-1]
@@ -137,22 +130,21 @@ def get_bracket_idx(input_dir: Path, x_sample_num:int, frame_periodicity:float):
     return bracket_idx, offset_time
 
 
-def iter_all_frame(input_dir: Path, device_name: str, samples_num: int, chrips_num: int):
-    for bin_file_path in get_bin_file_path(input_dir, device_name):
+def iter_all_frame(bin_files_path: Path, samples_num: int, chrips_num: int):
+    for bin_file_path in bin_files_path:
         bin_array = load_bin_file(bin_file_path, samples_num, chrips_num)
         yield bin_array
 
 
 def turn_device_frame(
-    input_dir: Path,
-    device_name,
+    bin_files_path: Path,
     samples_num: int,
     chrips_num: int,
     bracket_idx: np.ndarray,
     data_idx: np.ndarray,
     x_sample_num: int,
 ):
-    all_frames_iter = iter_all_frame(input_dir, device_name, samples_num, chrips_num)
+    all_frames_iter = iter_all_frame(bin_files_path, samples_num, chrips_num)
     bin_array = next(all_frames_iter)
     bin_len = bin_array.shape[0]
 
@@ -182,7 +174,7 @@ def turn_device_frame(
             except StopIteration:
                 stop_iteration_flag = True
 
-        mmw_array[i, mmw_idx] = line_frames[:,1]
+        mmw_array[i, mmw_idx] = line_frames[:, 1]
 
         if stop_iteration_flag:
             break
@@ -218,18 +210,17 @@ if __name__ == "__main__":
     chrips_num = 4  # number of chrips per frame
     frame_periodicity = 25  # stampe frame time in ms
     x_sample_num = 401
+    offset_time = -0.920  # 手动偏移校准
 
     input_dir = Path("../outdoor_20241121_143316")
 
-    bracket_idx, offset_time = get_bracket_idx(input_dir, x_sample_num, frame_periodicity)
+    bracket_idx, _ = get_bracket_idx(input_dir, x_sample_num, frame_periodicity)
 
-    offset_time = -0.920  # 手动偏移校准
-
-    data_idx = get_data_idx(input_dir, offset_time, frame_periodicity)
-    print(data_idx)
-
-    for device_name in ["slave3"]: #["master", "slave1", "slave2", "slave3"]:
-        mmw_array = turn_device_frame(input_dir, device_name, adc_samples_num, chrips_num, bracket_idx, data_idx, x_sample_num)
+    for device_name in ["slave3"]:  # ["master", "slave1", "slave2", "slave3"]:
+        bin_files_path, idxs_path = get_data_files_path(input_dir, device_name)
+        data_idx = get_data_idx(idxs_path, offset_time, frame_periodicity)
+        print(data_idx)
+        mmw_array = turn_device_frame(bin_files_path, adc_samples_num, chrips_num, bracket_idx, data_idx, x_sample_num)
         np.save(input_dir / f"{device_name}_mmw_array.npy", mmw_array)
 
 #    print(get_idx_info(input_dir / "slave1_0000_idx.bin"))
