@@ -103,7 +103,7 @@ def load_bin_file(bin_file: Path, samples_num: int, chrips_num: int, chrip_idx: 
     #(frame , chrips_num , ntx * devices_num , samples_num , nrx , 2)
 
     res = np.transpose(res, (0, 1, 2, 4, 3, 5))
-    return res[:, chrip_idx]
+    return res
 
 
 def get_data_idx(input_dir: Path, offset_time: float, frame_periodicity: float):
@@ -157,7 +157,7 @@ def turn_device_frame(
     bin_len = bin_array.shape[0]
 
     y_sample_num = bracket_idx.shape[0]
-    array_shape = (y_sample_num, x_sample_num, *(bin_array.shape[1:]))
+    array_shape = (y_sample_num, x_sample_num, *(bin_array.shape[2:]))
     mmw_array = np.zeros(array_shape, dtype=bin_array.dtype)
     frame_offset = 0
     stop_iteration_flag = False
@@ -182,7 +182,7 @@ def turn_device_frame(
             except StopIteration:
                 stop_iteration_flag = True
 
-        mmw_array[i, mmw_idx] = line_frames
+        mmw_array[i, mmw_idx] = line_frames[:,1]
 
         if stop_iteration_flag:
             break
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     data_idx = get_data_idx(input_dir, offset_time, frame_periodicity)
     print(data_idx)
 
-    for device_name in ["master", "slave1", "slave2", "slave3"]:
+    for device_name in ["slave3"]: #["master", "slave1", "slave2", "slave3"]:
         mmw_array = turn_device_frame(input_dir, device_name, adc_samples_num, chrips_num, bracket_idx, data_idx, x_sample_num)
         np.save(input_dir / f"{device_name}_mmw_array.npy", mmw_array)
 
