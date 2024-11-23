@@ -136,47 +136,77 @@ def iter_all_frame(bin_files_path: Path, samples_num: int, chrips_num: int):
         yield bin_array
 
 
-def turn_device_frame(
-    bin_files_path: Path,
-    samples_num: int,
-    chrips_num: int,
-    bracket_idx: np.ndarray,
-    data_idx: np.ndarray,
-    x_sample_num: int,
-):
-    all_frames_iter = iter_all_frame(bin_files_path, samples_num, chrips_num)
-    bin_array = next(all_frames_iter)
-    bin_len = bin_array.shape[0]
+class MMWFrame:
+    def __init__(self, bin_files_path: Path, samples_num: int, chrips_num: int, data_idx: np.ndarray):
+        self.bin_files_path = bin_files_path
+        self.samples_num = samples_num
+        self.chrips_num = chrips_num
+        self.data_idx = data_idx
 
-    y_sample_num = bracket_idx.shape[0]
-    array_shape = (y_sample_num, x_sample_num, *(bin_array.shape[2:]))
-    mmw_array = np.zeros(array_shape, dtype=bin_array.dtype)
-    frame_offset = 0
-    stop_iteration_flag = False
-    for i in trange(bracket_idx.shape[0]):
-        b_start, b_end = bracket_idx[i]
+        self.all_frames_iter = iter_all_frame(bin_files_path, samples_num, chrips_num)
+        self.bin_array: np.ndarray = next(self.all_frames_iter)
+        self.shape = self.bin_array.shape[1:]
+        self.dtype = self.bin_array.dtype
+
+        self.frame_offset = 0
+        self.stop_iteration_flag = False
+
+    def _get_next_bin_array(self):
+        try:
+            self.bin_array = next(self.all_frames_iter)
+            return self.bin_array
+        except StopIteration:
+            self.stop_iteration_flag = True
+
+    def __getitem__(self, i) -> np.ndarray:
+        bin_array = self.bin_array
+        bin_len = bin_array.shape[0]
+        frame_offset = self.frame_offset
+        data_idx = self.data_idx
+
+        if isinstance(i, tuple):
+            i, args = i[0], i[1:]
+        else:
+            args = ()
+
+        if isinstance(i, int):
+            return bin_array[i - self.frame_offset, *(args)]
+        elif isinstance(i, slice):
+            b_start, b_end, step = i.start, i.stop, i.step
+        else:
+            raise ValueError("Index must be int or slice")
+
         start, end = np.searchsorted(data_idx, [b_start, b_end])
 
         mmw_idx = data_idx[start:end] - b_start
 
         start, end = start - frame_offset, end - frame_offset
+
         line_frames = bin_array[start:end]
 
         if end >= bin_len:
-            try:
-                bin_array = next(all_frames_iter)
-
+            bin_array = self._get_next_bin_array()
+            if bin_array is not None:
                 start, end = max(0, start - bin_len), end - bin_len
                 line_frames = np.concatenate((line_frames, bin_array[start:end]))
+                self.frame_offset += bin_len
 
-                frame_offset += bin_len
-                bin_len = bin_array.shape[0]
-            except StopIteration:
-                stop_iteration_flag = True
+        line_frames = line_frames[:, *(args)]
+        new_line_frames = np.zeros((b_end - b_start, *line_frames.shape[1:]), dtype=line_frames.dtype)
+        new_line_frames[mmw_idx] = line_frames[:]
+        return new_line_frames
 
-        mmw_array[i, mmw_idx] = line_frames[:, 1]
 
-        if stop_iteration_flag:
+def turn_device_frame(all_frames: MMWFrame, bracket_idx: np.ndarray, x_sample_num: int):
+    y_sample_num = bracket_idx.shape[0]
+    array_shape = (y_sample_num, x_sample_num, *all_frames.shape[1:])
+    mmw_array = np.zeros(array_shape, dtype=all_frames.dtype)
+
+    for i in trange(bracket_idx.shape[0]):
+        start, end = bracket_idx[i]
+        mmw_array[i] = all_frames[start:end, 1]
+
+        if all_frames.stop_iteration_flag:
             break
 
     return mmw_array
@@ -220,7 +250,8 @@ if __name__ == "__main__":
         bin_files_path, idxs_path = get_data_files_path(input_dir, device_name)
         data_idx = get_data_idx(idxs_path, offset_time, frame_periodicity)
         print(data_idx)
-        mmw_array = turn_device_frame(bin_files_path, adc_samples_num, chrips_num, bracket_idx, data_idx, x_sample_num)
+        mmw_frame = MMWFrame(bin_files_path, adc_samples_num, chrips_num, data_idx)
+        mmw_array = turn_device_frame(mmw_frame, bracket_idx, x_sample_num)
         np.save(input_dir / f"{device_name}_mmw_array.npy", mmw_array)
 
 #    print(get_idx_info(input_dir / "slave1_0000_idx.bin"))
