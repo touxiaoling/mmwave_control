@@ -1,7 +1,5 @@
-from contextlib import contextmanager
 from pathlib import Path
 import numpy as np
-from tempfile import NamedTemporaryFile
 
 
 def get_idx_info(idx_file: Path):
@@ -88,8 +86,8 @@ def load_bin_file(bin_file: Path, samples_num: int, chrips_num: int, chrip_idx: 
     nrx = 4  # 接收天线数目
     nitems = chrips_num * ntx * devices_num * samples_num * nrx * nwave
 
-    # bin_file_array = np.memmap(bin_file, dtype=np.int16, mode="r")
-    bin_file_array = np.fromfile(bin_file, dtype=np.int16)
+    bin_file_array = np.memmap(bin_file, dtype=np.int16, mode="r")
+    # bin_file_array = np.fromfile(bin_file, dtype=np.int16)
     assert bin_file_array.shape[0] % nitems == 0
 
     res = bin_file_array.reshape(-1, nitems)
@@ -112,7 +110,7 @@ def get_data_idx(idxs_path: list, offset_time: float, frame_periodicity: float):
     data_idx = (data_idx - data_idx[0] + offset_time * 1e6) / 1000 / frame_periodicity
     # data_idx = (data_idx + offset_time * 1e6) / 1000 / frame_periodicity
 
-    data_idx = np.astype(np.around(data_idx), int)
+    data_idx = np.astype(np.rint(data_idx), int)
     return data_idx
 
 
@@ -125,8 +123,8 @@ def get_bracket_idx(input_dir: Path, x_sample_num: int, frame_periodicity: float
         start = t0 * 1000 / frame_periodicity
         end = start + x_sample_num
         bracket_idx.append((start, end))
-    bracket_idx = np.array(bracket_idx)
-    bracket_idx = np.astype(np.around(bracket_idx), int)
+    bracket_idx = np.asarray(bracket_idx)
+    bracket_idx = np.astype(np.rint(bracket_idx), int)
     return bracket_idx, offset_time
 
 
