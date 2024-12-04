@@ -2,6 +2,12 @@
 
 This is an active millimeter-wave scanning framework code, which is still under development.
 
+# project install
+install uv for package manage
+```bash
+uv sync 
+```
+
 # fmc4030 control issue
 
 

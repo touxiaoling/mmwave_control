@@ -3,7 +3,7 @@ from subprocess import PIPE
 import functools
 import time
 from pathlib import Path
-import toml
+import tomli_w
 
 
 def subprocess_popen(cmd):
@@ -49,4 +49,4 @@ def retry(times=3, delay=1):
 
 def turn_toml(save_path: Path | str, info_dict: dict):
     save_path = Path(save_path)
-    save_path.write_text(toml.dumps(info_dict), encoding="utf-8")
+    save_path.write_text(tomli_w.dumps(info_dict), encoding="utf-8")

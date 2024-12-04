@@ -1,8 +1,32 @@
+[project]
+name = "mmwave-control"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.12.*"
+dependencies = [
+    "numba>=0.60.0",
+    "scipy>=1.14.1",
+    "matplotlib>=3.9.3",
+    "pydantic>=2.10.3",
+    "rich>=13.9.4",
+    "tomli-w>=1.1.0",
+    "tqdm>=4.67.1",
+    "zstandard>=0.23.0",
+    "numpy-stl>=3.2.0",
+    "numba-progress>=1.1.0",
+    "ipykernel>=6.29.5",
+    "ipympl>=0.9.4",
+]
 
+[tool.uv]
+constraint-dependencies = ["llvm>0.43.0"]
+package = false
+compile-bytecode = true
 
 [tool.ruff]
 line-length = 128
 target-version = "py312"
 
 [tool.ruff.lint]
-ignore = ["F401",]
+ignore = ["F401"]

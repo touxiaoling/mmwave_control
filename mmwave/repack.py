@@ -167,10 +167,10 @@ class MMWFrame:
         else:
             args = ()
 
-        if isinstance(i, int):
-            return bin_array[i - self.frame_offset, *(args)]
-        elif isinstance(i, slice):
+        if isinstance(i, slice):
             b_start, b_end, step = i.start, i.stop, i.step
+        elif isinstance(i, int):
+            return bin_array[i - self.frame_offset, *args]
         else:
             raise ValueError("Index must be int or slice")
 
@@ -189,7 +189,7 @@ class MMWFrame:
                 line_frames = np.concatenate((line_frames, bin_array[start:end]))
                 self.frame_offset += bin_len
 
-        line_frames = line_frames[:, *(args)]
+        line_frames = line_frames[:, *args]
         new_line_frames = np.zeros((b_end - b_start, *line_frames.shape[1:]), dtype=line_frames.dtype)
         new_line_frames[mmw_idx] = line_frames[:]
         return new_line_frames

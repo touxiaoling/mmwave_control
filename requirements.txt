@@ -1,4 +1,0 @@
-pydantic
-numpy
-tqdm
-rich
