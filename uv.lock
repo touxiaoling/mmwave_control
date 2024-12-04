@@ -390,33 +390,41 @@ name = "mmwave-control"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "ipykernel" },
-    { name = "ipympl" },
     { name = "matplotlib" },
     { name = "numba" },
-    { name = "numba-progress" },
-    { name = "numpy-stl" },
     { name = "pydantic" },
     { name = "rich" },
     { name = "scipy" },
     { name = "tomli-w" },
     { name = "tqdm" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "ipykernel" },
+    { name = "ipympl" },
+    { name = "numba-progress" },
+    { name = "numpy-stl" },
     { name = "zstandard" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "ipykernel", specifier = ">=6.29.5" },
-    { name = "ipympl", specifier = ">=0.9.4" },
     { name = "matplotlib", specifier = ">=3.9.3" },
     { name = "numba", specifier = ">=0.60.0" },
-    { name = "numba-progress", specifier = ">=1.1.0" },
-    { name = "numpy-stl", specifier = ">=3.2.0" },
     { name = "pydantic", specifier = ">=2.10.3" },
     { name = "rich", specifier = ">=13.9.4" },
     { name = "scipy", specifier = ">=1.14.1" },
     { name = "tomli-w", specifier = ">=1.1.0" },
     { name = "tqdm", specifier = ">=4.67.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "ipykernel", specifier = ">=6.29.5" },
+    { name = "ipympl", specifier = ">=0.9.4" },
+    { name = "numba-progress", specifier = ">=1.1.0" },
+    { name = "numpy-stl", specifier = ">=3.2.0" },
     { name = "zstandard", specifier = ">=0.23.0" },
 ]
 
