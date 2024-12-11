@@ -3,9 +3,8 @@ name = "mmwave-control"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = "==3.12.*"
 dependencies = [
-    "numba>=0.60.0",
     "scipy>=1.14.1",
     "matplotlib>=3.9.3",
     "pydantic>=2.10.3",
@@ -18,9 +17,6 @@ dependencies = [
 dev = [
     "ipykernel>=6.29.5",
     "ipympl>=0.9.4",
-    "numba-progress>=1.1.0",
-    "numpy-stl>=3.2.0",
-    "zstandard>=0.23.0",
 ]
 
 [tool.uv]

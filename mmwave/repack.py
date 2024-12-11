@@ -1,5 +1,7 @@
 from pathlib import Path
 import numpy as np
+import scipy
+import scipy.interpolate
 
 
 def get_idx_info(idx_file: Path):
@@ -134,6 +136,20 @@ def iter_all_frame(bin_files_path: Path, samples_num: int, chrips_num: int):
         yield bin_array
 
 
+def interpolate_zero(data: np.ndarray):
+    grids = [np.arange(dim) for dim in data.shape]
+
+    interpolator = scipy.interpolate.RegularGridInterpolator(grids, data, method="linear", bounds_error=False, fill_value=0)
+
+    indices = np.array(np.indices(data.shape)).reshape(len(data.shape), -1).T
+    zero_points = indices[np.ravel(data) == 0]
+
+    interpolator_values = interpolator(zero_points)
+    for idx, value in zip(zero_points, interpolator_values):
+        data[tuple(idx)] = value
+    return data
+
+
 class MMWFrame:
     def __init__(self, bin_files_path: Path, samples_num: int, chrips_num: int, data_idx: np.ndarray):
         self.bin_files_path = bin_files_path
@@ -244,12 +260,25 @@ if __name__ == "__main__":
 
     bracket_idx, _ = get_bracket_idx(input_dir, x_sample_num, frame_periodicity)
 
-    for device_name in ["slave3"]:  # ["master", "slave1", "slave2", "slave3"]:
+    rx_tabel = {  # RX channel order on TI 4-chip cascade EVM
+        "master": np.asarray([4, 5, 6, 7]),
+        "slave1": np.asarray([12, 13, 14, 15]),
+        "slave2": np.asarray([8, 9, 10, 11]),
+        "slave3": np.asarray([0, 1, 2, 3]),
+    }
+
+    all_mmw_array = None
+    for device_name in ["master", "slave1", "slave2", "slave3"]:
         bin_files_path, idxs_path = get_data_files_path(input_dir, device_name)
         data_idx = get_data_idx(idxs_path, offset_time, frame_periodicity)
         print(data_idx)
         mmw_frame = MMWFrame(bin_files_path, adc_samples_num, chrips_num, data_idx)
         mmw_array = turn_device_frame(mmw_frame, bracket_idx, x_sample_num)
-        np.save(input_dir / f"{device_name}_mmw_array.npy", mmw_array)
+        if all_mmw_array is None:
+            array_shape = [*mmw_array.shape]
+            array_shape[3] = array_shape[3] * 4
+            all_mmw_array = np.zeros(array_shape, dtype=mmw_array.dtype)
+        all_mmw_array[:, :, :, rx_tabel[device_name]] = mmw_array
 
+    np.save(input_dir / "all_mmw_array.npy", all_mmw_array)
 #    print(get_idx_info(input_dir / "slave1_0000_idx.bin"))
