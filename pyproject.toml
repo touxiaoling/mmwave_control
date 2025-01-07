@@ -21,7 +21,7 @@ dev = [
 
 [tool.uv]
 constraint-dependencies = ["llvm>0.43.0"]
-package = false
+package = true
 compile-bytecode = true
 
 [tool.ruff]
