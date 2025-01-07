@@ -5,7 +5,11 @@ from pathlib import Path
 import tomllib
 
 from .util import subprocess_popen, retry
-from . import mmwcas
+
+try:
+    from . import mmwcas
+except Exception as e:
+    pass
 
 
 class MMWaveCmd:
@@ -43,7 +47,7 @@ class MMWaveCmd:
         return sum(offset) / len(offset)
 
     def get(self, datadir: str, savedir: str):
-        cmd = f"scp -r -O root@192.168.33.180:{datadir} {savedir}"
+        cmd = ["scp", "-r" ,"-O", f"root@192.168.33.180:{datadir}" f"{savedir}"]
         return subprocess.run(cmd)
 
 

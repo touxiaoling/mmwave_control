@@ -5,6 +5,11 @@ This is an active millimeter-wave scanning framework code, which is still under 
 # project install
 install uv for package manage
 ```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+then
+
+```bash
 uv sync 
 ```
 
