@@ -245,18 +245,22 @@ def check_data_idx(input_dir: Path):
 
 
 if __name__ == "__main__":
+    import tomllib
+
     from rich.console import Console
     import matplotlib.pyplot as plt
     from tqdm import trange
 
     print = Console().print
-    adc_samples_num = 256  # number of ADC samples per chirp
-    chrips_num = 4  # number of chrips per frame
-    frame_periodicity = 25  # stampe frame time in ms
-    x_sample_num = 401
-    offset_time = -0.920  # 手动偏移校准
-
     input_dir = Path("../outdoor_20241121_143316")
+    with (input_dir / "config.toml").open("rb") as f:
+        cfg = tomllib.load(f)
+
+    adc_samples_num = cfg["mimo"]["profile"]["numAdcSamples"]  # number of ADC samples per chirp
+    chrips_num = cfg["mimo"]["frame"]["numLoops"]  # number of chrips per frame
+    frame_periodicity = cfg["mimo"]["frame"]["framePeriodicity"]  # stampe frame time in ms
+    x_sample_num = cfg["bracket"]["profile"]["col"]
+    offset_time = cfg["bracket"]["profile"]["offset_time"]  # 手动偏移校准
 
     bracket_idx, _ = get_bracket_idx(input_dir, x_sample_num, frame_periodicity)
 
