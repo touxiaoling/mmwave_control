@@ -1,0 +1,1 @@
+uv run jupyter nbconvert --ClearOutputPreprocessor.enabled=True --ClearMetadataPreprocessor.enabled=True --inplace *.ipynb required

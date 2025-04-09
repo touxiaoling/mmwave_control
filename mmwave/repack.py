@@ -112,7 +112,7 @@ def get_data_idx(idxs_path: list, offset_time: float, frame_periodicity: float):
     data_idx = (data_idx - data_idx[0] + offset_time * 1e6) / 1000 / frame_periodicity
     # data_idx = (data_idx + offset_time * 1e6) / 1000 / frame_periodicity
 
-    data_idx = np.astype(np.rint(data_idx), int)
+    data_idx = np.rint(data_idx).astype(int)
     return data_idx
 
 
@@ -126,7 +126,7 @@ def get_bracket_idx(input_dir: Path, x_sample_num: int, frame_periodicity: float
         end = start + x_sample_num
         bracket_idx.append((start, end))
     bracket_idx = np.asarray(bracket_idx)
-    bracket_idx = np.astype(np.rint(bracket_idx), int)
+    bracket_idx = np.rint(bracket_idx).astype(int)
     return bracket_idx, offset_time
 
 
