@@ -1,4 +1,4 @@
-from fmc4030 import FMC4030, Braket
+from mmwave.fmc4030 import FMC4030, Braket
 
 fmc4030 = FMC4030()
 with Braket(fmc4030) as mmwb:
