@@ -1,6 +1,6 @@
 [project]
 name = "mmwave-control"
-version = "0.1.0"
+version = "0.1.5"
 description = "Add your description here"
 readme = "README.md"
 requires-python = "==3.12.*"
@@ -14,15 +14,24 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "ipykernel>=6.29.5",
-    "ipympl>=0.9.4",
-    "nbconvert>=7.16.6",
-]
+dev = ["ipykernel>=6.29.5", "ipympl>=0.9.4", "nbconvert>=7.16.6"]
 
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-data = { "mmwave" = [
+    "*.pyi",
+    "*.so",
+    "**/*.a",
+    "**/*.h",
+    "**/*.so",
+    "**/*.lib",
+    "**/*.dll",
+] } # 包含所有类型和二进制文件 
 [tool.uv]
 constraint-dependencies = ["llvm>0.43.0"]
-package = false
 compile-bytecode = true
 
 [tool.ruff]
