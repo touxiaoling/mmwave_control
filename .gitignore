@@ -164,7 +164,7 @@ cython_debug/
 .DS_Store
 *_try.py
 !/mmwave/fmc4030/lib
-!.mmwave/fmc4030/lib/ubuntu/x64/libFMC4030-Lib.so
+!/mmwave/fmc4030/lib/ubuntu/x64/libFMC4030-Lib.so
 /mmwave_data
 /output
 /code_data
