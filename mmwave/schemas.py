@@ -4,10 +4,10 @@ from typing import Optional
 
 class MimoProfile(BaseModel):
     id: int = 0
-    startFrequency: int = 77
+    startFrequency: float = 77
     frequencySlope: float = 79.0327
     idleTime: int = 5
-    adcStartTime: int = 6
+    adcStartTime: float = 6
     rampEndTime: int = 40
     txStartTime: int = 0
     numAdcSamples: int = 256
@@ -20,7 +20,7 @@ class MimoProfile(BaseModel):
 class MimoFrame(BaseModel):
     numFrames: int = 0
     numLoops: int = 4
-    framePeriodicity: int = 25
+    framePeriodicity: float = 25.
 
 
 class MimoChannel(BaseModel):
