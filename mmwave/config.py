@@ -1,3 +1,5 @@
+import schemas
+
 #   - Max Range             : 80 m
 #   - Range resolution      : 30 cm
 #   - Max velocity          : 6.49 km/h
@@ -25,6 +27,7 @@ default_cfg = dict(
         ),
     ),
 )
+default_cfg = schemas.MMWConfig.model_validate(default_cfg)
 
 # Setup:
 #   - Max Range: 15m
@@ -56,7 +59,7 @@ short_range_cfg = dict(
         ),
     ),
 )
-
+short_range_cfg = schemas.MMWConfig.model_validate(short_range_cfg)
 # Setup:
 #   - Max Range: 9.26m
 #   - Range resolution: ~5cm
@@ -87,3 +90,4 @@ very_short_range_cfg = dict(
         ),
     ),
 )
+very_short_range_cfg = schemas.MMWConfig.model_validate(short_range_cfg)

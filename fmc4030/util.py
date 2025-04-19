@@ -1,6 +1,7 @@
 import time
 from functools import wraps
 
+
 def min_delay(min_delay_time=0.001):
     def decorator(func):
         @wraps(func)

@@ -47,7 +47,7 @@ class MMWaveCmd:
         return sum(offset) / len(offset)
 
     def get(self, datadir: str, savedir: str):
-        cmd = ["scp", "-r" ,"-O", f"root@192.168.33.180:/mnt/ssd/{datadir}" f"{savedir}"]
+        cmd = ["scp", "-r", "-O", f"root@192.168.33.180:/mnt/ssd/{datadir}{savedir}"]
         return subprocess.run(cmd)
 
 

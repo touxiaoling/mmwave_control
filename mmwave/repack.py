@@ -244,32 +244,34 @@ def check_data_idx(input_dir: Path):
     plt.show()
 
 
+rx_tabel = {  # RX channel order on TI 4-chip cascade EVM
+    "slave3": np.asarray([0, 1, 2, 3]),
+    "master": np.asarray([4, 5, 6, 7]),
+    "slave2": np.asarray([8, 9, 10, 11]),
+    "slave1": np.asarray([12, 13, 14, 15]),
+}
+
 if __name__ == "__main__":
     import tomllib
 
     from rich.console import Console
     import matplotlib.pyplot as plt
     from tqdm import trange
+    from mmwave import schemas
 
     print = Console().print
     input_dir = Path("../outdoor_20241121_143316")
     with (input_dir / "config.toml").open("rb") as f:
         cfg = tomllib.load(f)
+        cfg = schemas.MMWConfig.model_validate(cfg)
 
-    adc_samples_num = cfg["mimo"]["profile"]["numAdcSamples"]  # number of ADC samples per chirp
-    chrips_num = cfg["mimo"]["frame"]["numLoops"]  # number of chrips per frame
-    frame_periodicity = cfg["mimo"]["frame"]["framePeriodicity"]  # stampe frame time in ms
-    x_sample_num = cfg["bracket"]["profile"]["col"]
-    offset_time = cfg["bracket"]["profile"]["offset_time"]  # 手动偏移校准
+    adc_samples_num = cfg.mimo.profile.numAdcSamples  # number of ADC samples per chirp
+    chrips_num = cfg.mimo.frame.numLoops  # number of chrips per frame
+    frame_periodicity = cfg.mimo.frame.framePeriodicity  # stampe frame time in ms
+    x_sample_num = cfg.bracket.profile.col
+    offset_time = cfg.bracket.profile.offset_time  # 手动偏移校准
 
     bracket_idx, _ = get_bracket_idx(input_dir, x_sample_num, frame_periodicity)
-
-    rx_tabel = {  # RX channel order on TI 4-chip cascade EVM
-        "master": np.asarray([4, 5, 6, 7]),
-        "slave1": np.asarray([12, 13, 14, 15]),
-        "slave2": np.asarray([8, 9, 10, 11]),
-        "slave3": np.asarray([0, 1, 2, 3]),
-    }
 
     all_mmw_array = None
     for device_name in ["master", "slave1", "slave2", "slave3"]:
