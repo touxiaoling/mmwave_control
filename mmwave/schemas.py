@@ -29,12 +29,15 @@ class MimoChannel(BaseModel):
 
 
 class BracketProfile(BaseModel):
-    dx: int = 1
-    dy: int = 2
+    dx: float = 1
+    dy: float = 2
     row: int = 151
     col: int = 401
     timestamps: str = "timestamps.txt"
     offset_time: float = -0.920
+    record_time: Optional[float] = None
+    run_time: Optional[str] = None
+    files: Optional[list[str]] = None
 
 
 class MimoConfig(BaseModel):

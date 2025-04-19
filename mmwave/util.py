@@ -3,6 +3,8 @@ from subprocess import PIPE
 import functools
 import time
 from pathlib import Path
+import numpy as np
+import tomllib
 import tomli_w
 
 
@@ -50,3 +52,21 @@ def retry(times=3, delay=1):
 def turn_toml(save_path: Path | str, info_dict: dict):
     save_path = Path(save_path)
     save_path.write_text(tomli_w.dumps(info_dict), encoding="utf-8")
+
+
+def load_frame(input_dir: Path):
+    from mmwave import schemas
+
+    with (input_dir / "config.toml").open("rb") as f:
+        cfg = tomllib.load(f)
+        cfg = schemas.MMWConfig.model_validate(cfg)
+
+    frame_file_path = input_dir / "all_mmw_array.npy"
+    if not frame_file_path.exists():
+        from mmwave.repack import turn_frame
+
+        turn_frame(input_dir, cfg)
+
+    frame_file: np.ndarray = np.load(frame_file_path, mmap_mode="r")
+
+    return frame_file, cfg

@@ -3,6 +3,15 @@ import numpy as np
 import scipy
 import scipy.interpolate
 
+from mmwave import schemas
+
+rx_tabel = {  # RX channel order on TI 4-chip cascade EVM
+    "slave3": np.asarray([0, 1, 2, 3]),
+    "master": np.asarray([4, 5, 6, 7]),
+    "slave2": np.asarray([8, 9, 10, 11]),
+    "slave1": np.asarray([12, 13, 14, 15]),
+}
+
 
 def get_idx_info(idx_file: Path):
     dt = np.dtype(
@@ -212,6 +221,8 @@ class MMWFrame:
 
 
 def turn_device_frame(all_frames: MMWFrame, bracket_idx: np.ndarray, x_sample_num: int):
+    from tqdm import trange
+
     y_sample_num = bracket_idx.shape[0]
     array_shape = (y_sample_num, x_sample_num, *all_frames.shape[1:])
     mmw_array = np.zeros(array_shape, dtype=all_frames.dtype)
@@ -227,6 +238,8 @@ def turn_device_frame(all_frames: MMWFrame, bracket_idx: np.ndarray, x_sample_nu
 
 
 def check_data_idx(input_dir: Path):
+    import matplotlib.pyplot as plt
+
     for idx_num in ["master", "slave1", "slave2", "slave3"]:
         idxs_path = sorted(input_dir.glob(f"{idx_num}*_idx.bin"))
         all_frame_time = []
@@ -244,27 +257,7 @@ def check_data_idx(input_dir: Path):
     plt.show()
 
 
-rx_tabel = {  # RX channel order on TI 4-chip cascade EVM
-    "slave3": np.asarray([0, 1, 2, 3]),
-    "master": np.asarray([4, 5, 6, 7]),
-    "slave2": np.asarray([8, 9, 10, 11]),
-    "slave1": np.asarray([12, 13, 14, 15]),
-}
-
-if __name__ == "__main__":
-    import tomllib
-
-    from rich.console import Console
-    import matplotlib.pyplot as plt
-    from tqdm import trange
-    from mmwave import schemas
-
-    print = Console().print
-    input_dir = Path("../outdoor_20241121_143316")
-    with (input_dir / "config.toml").open("rb") as f:
-        cfg = tomllib.load(f)
-        cfg = schemas.MMWConfig.model_validate(cfg)
-
+def turn_frame(input_dir: Path, cfg: schemas.MMWConfig):
     adc_samples_num = cfg.mimo.profile.numAdcSamples  # number of ADC samples per chirp
     chrips_num = cfg.mimo.frame.numLoops  # number of chrips per frame
     frame_periodicity = cfg.mimo.frame.framePeriodicity  # stampe frame time in ms
@@ -287,4 +280,16 @@ if __name__ == "__main__":
         all_mmw_array[:, :, :, rx_tabel[device_name]] = mmw_array
 
     np.save(input_dir / "all_mmw_array.npy", all_mmw_array)
-#    print(get_idx_info(input_dir / "slave1_0000_idx.bin"))
+
+
+if __name__ == "__main__":
+    import tomllib
+    from rich.console import Console
+
+    print = Console().print
+    input_dir = Path("../outdoor_20241121_143316")
+    with (input_dir / "config.toml").open("rb") as f:
+        cfg = tomllib.load(f)
+        cfg = schemas.MMWConfig.model_validate(cfg)
+
+    turn_frame(input_dir, cfg)
