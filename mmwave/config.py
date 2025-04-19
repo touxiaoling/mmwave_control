@@ -1,4 +1,4 @@
-import schemas
+from . import schemas
 
 #   - Max Range             : 80 m
 #   - Range resolution      : 30 cm
