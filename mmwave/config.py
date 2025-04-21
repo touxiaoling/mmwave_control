@@ -1,3 +1,6 @@
+import tomllib
+from pathlib import Path
+
 from . import schemas
 
 #   - Max Range             : 80 m
@@ -91,3 +94,13 @@ very_short_range_cfg = dict(
     ),
 )
 very_short_range_cfg = schemas.MMWConfig.model_validate(short_range_cfg)
+
+
+def load_config(config_path: str="config.toml") -> schemas.MMWConfig:
+    """
+    Load a configuration file and return the MMWConfig object.
+    """
+    with Path(config_path).open("rb") as f:
+        cfg = tomllib.load(f)
+        cfg = schemas.MMWConfig.model_validate(cfg)
+    return cfg

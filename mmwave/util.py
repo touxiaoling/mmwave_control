@@ -4,7 +4,6 @@ import functools
 import time
 from pathlib import Path
 import numpy as np
-import tomllib
 import tomli_w
 
 
@@ -55,12 +54,9 @@ def turn_toml(save_path: Path | str, info_dict: dict):
 
 
 def load_frame(input_dir: Path):
-    from mmwave import schemas
+    from mmwave.config import load_config
 
-    with (input_dir / "config.toml").open("rb") as f:
-        cfg = tomllib.load(f)
-        cfg = schemas.MMWConfig.model_validate(cfg)
-
+    cfg = load_config(input_dir / "config.toml")
     frame_file_path = input_dir / "all_mmw_array.npy"
     if not frame_file_path.exists():
         from mmwave.repack import turn_frame
