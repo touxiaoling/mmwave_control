@@ -21,13 +21,21 @@ def cal_running_time(length, speed, acc, dec):
     return running_t
 
 
+def cal_acc_time_length(acc, speed):
+    # 计算加速到speed需要的时间s
+    t_acc = speed / acc + 10 / speed
+    # 计算加速到speed需要的距离mm
+    len_acc = acc * t_acc * t_acc / 2 + 10
+    return t_acc, len_acc
+
+
 class Braket:
     def __init__(
         self,
         bc: FMC4030,
         x_speed: float = 200.0,
-        x_acc: float = 200.0,
-        x_dec: float = 200.0,
+        x_acc: float = 250.0,
+        x_dec: float = 250.0,
         x_fall_step: float = 5,
         x_home_speed: float = 50,
         x_reverse: bool = False,
@@ -131,8 +139,8 @@ class Braket:
         if not 0 <= pos <= self.x_pos_limit:
             raise ValueError(f"x pos {pos} out limit 0~{self.x_pos_limit}")
         speed = speed or self.x_speed
+        dec = dec or acc or self.x_dec
         acc = acc or self.x_acc
-        dec = dec or self.x_dec
 
         real_pos = self._real_pos(pos, self.x_reverse)
         self.bc.jog_single_axis_absolute(self.x_axis_id, real_pos, speed, acc, dec)
@@ -154,8 +162,8 @@ class Braket:
         if not 0 <= pos <= self.y_pos_limit:
             raise ValueError(f"y pos {pos} out limit 0~{self.y_pos_limit}")
         speed = speed or self.y_speed
+        dec = dec or acc or self.y_dec
         acc = acc or self.y_acc
-        dec = dec or self.y_dec
 
         real_pos = self._real_pos(pos, self.y_reverse)
         with self.break_conrtol():

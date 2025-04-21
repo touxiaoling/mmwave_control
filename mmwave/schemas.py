@@ -19,7 +19,7 @@ class MimoProfile(BaseModel):
 
 class MimoFrame(BaseModel):
     numFrames: int = 0
-    numLoops: int = 4
+    numLoops: int = 2
     framePeriodicity: float = 25.
 
 
@@ -38,6 +38,8 @@ class BracketProfile(BaseModel):
     record_time: Optional[float] = None
     run_time: Optional[str] = None
     files: Optional[list[str]] = None
+    next_line_reverse: bool = False
+    pre_acc: bool = False
 
 
 class MimoConfig(BaseModel):
