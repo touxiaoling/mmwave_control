@@ -20,7 +20,7 @@ class MimoProfile(BaseModel):
 class MimoFrame(BaseModel):
     numFrames: int = 0
     numLoops: int = 2
-    framePeriodicity: float = 25.
+    framePeriodicity: float = 25.0
 
 
 class MimoChannel(BaseModel):

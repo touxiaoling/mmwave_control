@@ -1,8 +1,10 @@
+import tomllib
 import subprocess
 from subprocess import PIPE
 import functools
 import time
 from pathlib import Path
+
 import numpy as np
 import tomli_w
 
@@ -53,9 +55,19 @@ def turn_toml(save_path: Path | str, info_dict: dict):
     save_path.write_text(tomli_w.dumps(info_dict), encoding="utf-8")
 
 
-def load_frame(input_dir: Path):
-    from mmwave.config import load_config
+def load_config(config_path: str = "config.toml"):
+    """
+    Load a configuration file and return the MMWConfig object.
+    """
+    from mmwave import schemas
 
+    with Path(config_path).open("rb") as f:
+        cfg = tomllib.load(f)
+        cfg = schemas.MMWConfig.model_validate(cfg)
+    return cfg
+
+
+def load_frame(input_dir: Path):
     cfg = load_config(input_dir / "config.toml")
     frame_file_path = input_dir / "all_mmw_array.npy"
     if not frame_file_path.exists():
