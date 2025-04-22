@@ -171,7 +171,10 @@ cython_debug/
 /*.png
 /*.npz
 /*_try.ipynb
+/*_try.sh
 /mmwtrace
 /.vscode
 /outdoor_*
 /config*
+config.toml
+timestamps.txt

@@ -13,6 +13,9 @@ dependencies = [
     "tqdm>=4.67.1",
 ]
 
+[project.scripts]
+repack = "mmwave.repack:main"
+
 [dependency-groups]
 dev = ["ipykernel>=6.29.5", "ipympl>=0.9.4", "nbconvert>=7.16.6"]
 
@@ -29,7 +32,7 @@ package-data = { "mmwave" = [
     "**/*.so",
     "**/*.lib",
     "**/*.dll",
-] } # 包含所有类型和二进制文件 
+] }
 [tool.uv]
 constraint-dependencies = ["llvm>0.43.0"]
 compile-bytecode = true

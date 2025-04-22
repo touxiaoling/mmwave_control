@@ -52,6 +52,8 @@ def retry(times=3, delay=1):
 
 def turn_toml(save_path: Path | str, info_dict: dict):
     save_path = Path(save_path)
+    if Path(save_path).exists():
+        Path(save_path).unlink()
     save_path.write_text(tomli_w.dumps(info_dict), encoding="utf-8")
 
 

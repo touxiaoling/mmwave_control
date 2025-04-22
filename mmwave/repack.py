@@ -2,9 +2,11 @@ from pathlib import Path
 import numpy as np
 import scipy
 import scipy.interpolate
+import logging
 
 from mmwave import schemas
 
+_logger = logging.getLogger(__name__)
 rx_tabel = {  # RX channel order on TI 4-chip cascade EVM
     "slave3": np.asarray([0, 1, 2, 3]),
     "master": np.asarray([4, 5, 6, 7]),
@@ -61,7 +63,7 @@ def get_data_files_path(inputdir: Path, device: str):
     if len(data) == 0 or len(idx) == 0:
         raise FileNotFoundError(f"No data or index files found for {device} in the input directory")
     elif len(data) != len(idx):
-        print(
+        _logger.error(
             f"[ERROR]: Missing {device} data or index file!\n"
             "Please check your recordings!"
             "\nYou must have the same number of "
@@ -113,6 +115,7 @@ def get_data_idx(idxs_path: list, offset_time: float, frame_periodicity: float):
     all_frame_time = []
     for idx_path in idxs_path:
         header_info, frame_info = get_idx_info(idx_path)
+        # _logger.info(f"header_info: {header_info}")
         frame_time = np.array([i[-2] for i in frame_info])
         all_frame_time.append(frame_time)
 
@@ -220,7 +223,7 @@ class MMWFrame:
         return new_line_frames
 
 
-def turn_device_frame(all_frames: MMWFrame, bracket_idx: np.ndarray, x_sample_num: int):
+def turn_device_frame(all_frames: MMWFrame, bracket_idx: np.ndarray, x_sample_num: int, next_line_reverse=False):
     from tqdm import trange
 
     y_sample_num = bracket_idx.shape[0]
@@ -229,7 +232,10 @@ def turn_device_frame(all_frames: MMWFrame, bracket_idx: np.ndarray, x_sample_nu
 
     for i in trange(bracket_idx.shape[0]):
         start, end = bracket_idx[i]
-        mmw_array[i] = all_frames[start:end, 1]
+        if next_line_reverse and (i % 2 == 1):
+            mmw_array[i] = all_frames[start:end, 1][::-1]
+        else:
+            mmw_array[i] = all_frames[start:end, 1]
 
         if all_frames.stop_iteration_flag:
             break
@@ -260,9 +266,15 @@ def check_data_idx(input_dir: Path):
 def turn_frame(input_dir: Path, cfg: schemas.MMWConfig):
     adc_samples_num = cfg.mimo.profile.numAdcSamples  # number of ADC samples per chirp
     chrips_num = cfg.mimo.frame.numLoops  # number of chrips per frame
+    _logger.info(f"chrips_num: {chrips_num}")
     frame_periodicity = cfg.mimo.frame.framePeriodicity  # stampe frame time in ms
+    _logger.info(f"frame_periodicity: {frame_periodicity}")
     x_sample_num = cfg.bracket.profile.col
     offset_time = cfg.bracket.profile.offset_time  # 手动偏移校准
+    next_line_reverse = cfg.bracket.profile.next_line_reverse
+    _logger.info(f"next_line_reverse: {next_line_reverse}")
+    num_frames = cfg.mimo.frame.numFrames
+    _logger.info(f"num_frames: {num_frames}, need record time:{num_frames * frame_periodicity / 1000}s")
 
     bracket_idx, _ = get_bracket_idx(input_dir, x_sample_num, frame_periodicity)
 
@@ -270,9 +282,10 @@ def turn_frame(input_dir: Path, cfg: schemas.MMWConfig):
     for device_name in ["master", "slave1", "slave2", "slave3"]:
         bin_files_path, idxs_path = get_data_files_path(input_dir, device_name)
         data_idx = get_data_idx(idxs_path, offset_time, frame_periodicity)
-        print(data_idx)
+        _logger.info(f"record time:{data_idx[-1] * frame_periodicity / 1000}s")
+
         mmw_frame = MMWFrame(bin_files_path, adc_samples_num, chrips_num, data_idx)
-        mmw_array = turn_device_frame(mmw_frame, bracket_idx, x_sample_num)
+        mmw_array = turn_device_frame(mmw_frame, bracket_idx, x_sample_num, next_line_reverse)
         if all_mmw_array is None:
             array_shape = [*mmw_array.shape]
             array_shape[3] = array_shape[3] * 4
@@ -282,14 +295,25 @@ def turn_frame(input_dir: Path, cfg: schemas.MMWConfig):
     np.save(input_dir / "all_mmw_array.npy", all_mmw_array)
 
 
-if __name__ == "__main__":
-    import tomllib
+def main():
+    import sys
     from rich.console import Console
+    from .util import load_config
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
     print = Console().print
-    input_dir = Path("../outdoor_20241121_143316")
-    with (input_dir / "config.toml").open("rb") as f:
-        cfg = tomllib.load(f)
-        cfg = schemas.MMWConfig.model_validate(cfg)
 
+    args = sys.argv[1:]
+    if args:
+        input_dir = Path(args[0])
+    else:
+        input_dir = Path("../mmwave_postproc/outdoor_20250422_222653")
+    _logger.info(f"read file from {input_dir}")
+
+    cfg = load_config(input_dir / "config.toml")
     turn_frame(input_dir, cfg)
+
+
+if __name__ == "__main__":
+    main()
