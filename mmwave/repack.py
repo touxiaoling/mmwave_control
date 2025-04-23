@@ -12,7 +12,7 @@ rx_tabel = {  # RX channel order on TI 4-chip cascade EVM
     "master": np.asarray([4, 5, 6, 7]),
     "slave2": np.asarray([8, 9, 10, 11]),
     "slave1": np.asarray([12, 13, 14, 15]),
-}
+}#这里不知道为什么和手册对不上 手册是 slave2 master slave3 slave1
 
 
 def get_idx_info(idx_file: Path):

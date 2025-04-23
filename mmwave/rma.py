@@ -109,3 +109,58 @@ def echo_plot(echo: np.ndarray, title: str, dx=1, dy=2, rma=False):
     plt.colorbar()
     plt.title(f"{title} phi Image")
     # plt.show()
+
+
+def main():
+    from pathlib import Path
+    import numpy as np
+    from scipy import constants as C
+    import matplotlib.pyplot as plt
+    from mmwave.rma import rma, echo_plot
+    from mmwave.util import load_frame
+    import sys
+    import matplotlib
+    matplotlib.use("TKAgg")
+
+    args = sys.argv[1:]
+    if args:
+        input_dir = Path(args[0])
+    else:
+        input_dir = Path("../mmwave_postproc/cas_data/outdoor_20250422_222653")
+    
+    frame_file, cfg = load_frame(input_dir)
+
+    num_sample = cfg.mimo.profile.numAdcSamples
+    adcStartTime = cfg.mimo.profile.adcStartTime  # us
+    startFrequency = cfg.mimo.profile.startFrequency * 1e9
+    K = cfg.mimo.profile.frequencySlope * 1e12  # Slope const (hz/s)
+    Fs = cfg.mimo.profile.adcSamplingFrequency * 1e3  # Sampling rate (sps)
+
+    F0 = startFrequency + adcStartTime * K * 1e-6 + num_sample // 2 / Fs * K  # Center frequency
+
+    dx = cfg.bracket.profile.dx
+    dy = cfg.bracket.profile.dy  # Sampling distance at x (horizontal) y (vertical) axis in mm
+    row = cfg.bracket.profile.row
+    col = cfg.bracket.profile.col
+
+    c = C.c
+    Ts = 1 / Fs  # Sampling period
+    k = 2 * np.pi * F0 / c  # Wave number
+    print(f"k:{k}")
+    tx_idx = 1
+    rx_idx = 1
+
+    Echo = frame_file[:, :, tx_idx, rx_idx, :, 0] + 1j * frame_file[:, :, tx_idx, rx_idx, :, 1]
+    ID_select = 21
+    nFFTtime = num_sample  # Number of FFT points for Spatial-FFT
+    tI = 183  # mm
+
+    R = c / 2 * (ID_select / (K * Ts * nFFTtime)) - tI / 1000
+    Sr: np.ndarray = np.fft.fft(Echo)
+    Sr = Sr[:, :, ID_select - 1]
+    Sr[Sr == 0] = 1e-10
+    echo_plot(Sr, "source", dx, dy)
+    plt.show()
+    reconstructed_image = rma(Sr, dx, dy, R, k)
+    echo_plot(reconstructed_image, "reconstructed_image", dx, dy, rma=True)
+    plt.show()

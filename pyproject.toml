@@ -15,6 +15,7 @@ dependencies = [
 
 [project.scripts]
 repack = "mmwave.repack:main"
+rma = "mmwave.rma:main"
 
 [dependency-groups]
 dev = ["ipykernel>=6.29.5", "ipympl>=0.9.4", "nbconvert>=7.16.6"]
