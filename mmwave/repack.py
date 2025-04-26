@@ -269,7 +269,7 @@ def check_data_idx(input_dir: Path):
 def turn_frame(input_dir: Path, cfg: schemas.MMWConfig):
     adc_samples_num = cfg.mimo.profile.numAdcSamples  # number of ADC samples per chirp
     chrips_num = cfg.mimo.frame.numLoops  # number of chrips per frame
-    chrip_idx = min(1, chrips_num - 1)
+    chrip_idx = min(1, chrips_num - 1)  # use chirp 1 if chirp num big than 1
     _logger.info(f"chrips_num: {chrips_num}")
     frame_periodicity = cfg.mimo.frame.framePeriodicity  # stampe frame time in ms
     _logger.info(f"frame_periodicity: {frame_periodicity}")
