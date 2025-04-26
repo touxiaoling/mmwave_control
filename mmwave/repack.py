@@ -12,7 +12,7 @@ rx_tabel = {  # RX channel order on TI 4-chip cascade EVM
     "master": np.asarray([4, 5, 6, 7]),
     "slave2": np.asarray([8, 9, 10, 11]),
     "slave1": np.asarray([12, 13, 14, 15]),
-}#这里不知道为什么和手册对不上 手册是 slave2 master slave3 slave1
+}  # 这里不知道为什么和手册对不上 手册是 slave2 master slave3 slave1
 
 
 def get_idx_info(idx_file: Path):
@@ -286,11 +286,13 @@ def turn_frame(input_dir: Path, cfg: schemas.MMWConfig):
 
         mmw_frame = MMWFrame(bin_files_path, adc_samples_num, chrips_num, data_idx)
         mmw_array = turn_device_frame(mmw_frame, bracket_idx, x_sample_num, next_line_reverse)
+        mmw_array = np.transpose(mmw_array, (2, 3, 0, 1, 4, 5))
         if all_mmw_array is None:
             array_shape = [*mmw_array.shape]
-            array_shape[3] = array_shape[3] * 4
+            array_shape[1] = array_shape[1] * 4
             all_mmw_array = np.zeros(array_shape, dtype=mmw_array.dtype)
-        all_mmw_array[:, :, :, rx_tabel[device_name]] = mmw_array
+
+        all_mmw_array[:, rx_tabel[device_name]] = mmw_array
 
     np.save(input_dir / "all_mmw_array.npy", all_mmw_array)
 

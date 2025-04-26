@@ -120,6 +120,7 @@ def main():
     from mmwave.util import load_frame
     import sys
     import matplotlib
+
     matplotlib.use("TKAgg")
 
     args = sys.argv[1:]
@@ -127,7 +128,7 @@ def main():
         input_dir = Path(args[0])
     else:
         input_dir = Path("../mmwave_postproc/cas_data/outdoor_20250422_222653")
-    
+
     frame_file, cfg = load_frame(input_dir)
 
     num_sample = cfg.mimo.profile.numAdcSamples
@@ -150,7 +151,7 @@ def main():
     tx_idx = 1
     rx_idx = 1
 
-    Echo = frame_file[:, :, tx_idx, rx_idx, :, 0] + 1j * frame_file[:, :, tx_idx, rx_idx, :, 1]
+    Echo = frame_file[tx_idx, rx_idx, :, :, :, 0] + 1j * frame_file[tx_idx, rx_idx, :, :, :, 1]
     ID_select = 21
     nFFTtime = num_sample  # Number of FFT points for Spatial-FFT
     tI = 183  # mm

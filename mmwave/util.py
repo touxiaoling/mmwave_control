@@ -79,4 +79,12 @@ def load_frame(input_dir: Path):
 
     frame_file: np.ndarray = np.load(frame_file_path, mmap_mode="r")
 
+    if frame_file.shape[0] != 12 or frame_file.shape[1] != 16:
+        from mmwave.repack import turn_frame
+
+        print("cache array old,return new array")
+        turn_frame(input_dir, cfg)
+
+        frame_file: np.ndarray = np.load(frame_file_path, mmap_mode="r")
+
     return frame_file, cfg
