@@ -38,6 +38,10 @@ package-data = { "mmwave" = [
 constraint-dependencies = ["llvm>0.43.0"]
 compile-bytecode = true
 
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
 [tool.ruff]
 line-length = 128
 target-version = "py312"
