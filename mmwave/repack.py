@@ -3,6 +3,7 @@ import numpy as np
 import scipy
 import scipy.interpolate
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 from mmwave import schemas
 
@@ -142,7 +143,7 @@ def get_bracket_idx(input_dir: Path, x_sample_num: int, frame_periodicity: float
     return bracket_idx, offset_time
 
 
-def iter_all_frame(bin_files_path: Path, samples_num: int, chrips_num: int):
+def iter_all_frame(bin_files_path: list[Path], samples_num: int, chrips_num: int):
     for bin_file_path in bin_files_path:
         bin_array = load_bin_file(bin_file_path, samples_num, chrips_num)
         yield bin_array
@@ -223,24 +224,21 @@ class MMWFrame:
         return new_line_frames
 
 
-def turn_device_frame(all_frames: MMWFrame, bracket_idx: np.ndarray, x_sample_num: int, next_line_reverse=False):
-    from tqdm import trange
-
-    y_sample_num = bracket_idx.shape[0]
-    array_shape = (y_sample_num, x_sample_num, *all_frames.shape[1:])
-    mmw_array = np.zeros(array_shape, dtype=all_frames.dtype)
+def turn_device_frame(
+    all_frames: np.ndarray, mmw_frames: MMWFrame, rx_idx: np.ndarray, bracket_idx: np.ndarray, next_line_reverse=False
+):
+    from tqdm.auto import trange
 
     for i in trange(bracket_idx.shape[0]):
         start, end = bracket_idx[i]
+        line_frames = mmw_frames[start:end, 1].transpose(2, 1, 0, 3, 4)
         if next_line_reverse and (i % 2 == 1):
-            mmw_array[i] = all_frames[start:end, 1][::-1]
+            all_frames[rx_idx, :, i] = line_frames[::-1]
         else:
-            mmw_array[i] = all_frames[start:end, 1]
+            all_frames[rx_idx, :, i] = line_frames
 
-        if all_frames.stop_iteration_flag:
+        if mmw_frames.stop_iteration_flag:
             break
-
-    return mmw_array
 
 
 def check_data_idx(input_dir: Path):
@@ -270,6 +268,7 @@ def turn_frame(input_dir: Path, cfg: schemas.MMWConfig):
     frame_periodicity = cfg.mimo.frame.framePeriodicity  # stampe frame time in ms
     _logger.info(f"frame_periodicity: {frame_periodicity}")
     x_sample_num = cfg.bracket.profile.col
+    y_sample_num = cfg.bracket.profile.row
     offset_time = cfg.bracket.profile.offset_time  # 手动偏移校准
     next_line_reverse = cfg.bracket.profile.next_line_reverse
     _logger.info(f"next_line_reverse: {next_line_reverse}")
@@ -277,22 +276,21 @@ def turn_frame(input_dir: Path, cfg: schemas.MMWConfig):
     _logger.info(f"num_frames: {num_frames}, need record time:{num_frames * frame_periodicity / 1000}s")
 
     bracket_idx, _ = get_bracket_idx(input_dir, x_sample_num, frame_periodicity)
+    array_shape = (16, 12, y_sample_num, x_sample_num, adc_samples_num, 2)
 
-    all_mmw_array = None
-    for device_name in ["master", "slave1", "slave2", "slave3"]:
-        bin_files_path, idxs_path = get_data_files_path(input_dir, device_name)
-        data_idx = get_data_idx(idxs_path, offset_time, frame_periodicity)
-        _logger.info(f"record time:{data_idx[-1] * frame_periodicity / 1000}s")
+    all_mmw_array = np.zeros(array_shape, dtype=np.int16)
 
+    bin_files_path, idxs_path = get_data_files_path(input_dir, "master")
+    data_idx = get_data_idx(idxs_path, offset_time, frame_periodicity)
+    _logger.info(f"record time:{data_idx[-1] * frame_periodicity / 1000}s")
+
+    def ithread(device_name):
         mmw_frame = MMWFrame(bin_files_path, adc_samples_num, chrips_num, data_idx)
-        mmw_array = turn_device_frame(mmw_frame, bracket_idx, x_sample_num, next_line_reverse)
-        mmw_array = np.transpose(mmw_array, (2, 3, 0, 1, 4, 5))
-        if all_mmw_array is None:
-            array_shape = [*mmw_array.shape]
-            array_shape[1] = array_shape[1] * 4
-            all_mmw_array = np.zeros(array_shape, dtype=mmw_array.dtype)
+        turn_device_frame(all_mmw_array, mmw_frame, rx_tabel[device_name], bracket_idx, next_line_reverse)
 
-        all_mmw_array[:, rx_tabel[device_name]] = mmw_array
+    with ThreadPoolExecutor() as executor:
+        for device_name in ["master", "slave1", "slave2", "slave3"]:
+            executor.submit(ithread, device_name)
 
     np.save(input_dir / "all_mmw_array.npy", all_mmw_array)
 

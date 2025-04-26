@@ -69,17 +69,17 @@ def load_config(config_path: str = "config.toml"):
     return cfg
 
 
-def load_frame(input_dir: Path):
+def load_frame(input_dir: Path, repack=False):
     cfg = load_config(input_dir / "config.toml")
     frame_file_path = input_dir / "all_mmw_array.npy"
-    if not frame_file_path.exists():
+    if not frame_file_path.exists() or repack:
         from mmwave.repack import turn_frame
 
         turn_frame(input_dir, cfg)
 
     frame_file: np.ndarray = np.load(frame_file_path, mmap_mode="r")
 
-    if frame_file.shape[0] != 12 or frame_file.shape[1] != 16:
+    if frame_file.shape[0] != 16 or frame_file.shape[1] != 12:
         from mmwave.repack import turn_frame
 
         print("cache array old,return new array")

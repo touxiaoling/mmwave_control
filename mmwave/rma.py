@@ -151,7 +151,7 @@ def main():
     tx_idx = 1
     rx_idx = 1
 
-    Echo = frame_file[tx_idx, rx_idx, :, :, :, 0] + 1j * frame_file[tx_idx, rx_idx, :, :, :, 1]
+    Echo = frame_file[rx_idx, tx_idx, :, :, :, 0] + 1j * frame_file[rx_idx, tx_idx, :, :, :, 1]
     ID_select = 21
     nFFTtime = num_sample  # Number of FFT points for Spatial-FFT
     tI = 183  # mm
