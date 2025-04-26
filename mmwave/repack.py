@@ -225,13 +225,18 @@ class MMWFrame:
 
 
 def turn_device_frame(
-    all_frames: np.ndarray, mmw_frames: MMWFrame, rx_idx: np.ndarray, bracket_idx: np.ndarray, next_line_reverse=False
+    all_frames: np.ndarray,
+    mmw_frames: MMWFrame,
+    rx_idx: np.ndarray,
+    chirp_idx: int,
+    bracket_idx: np.ndarray,
+    next_line_reverse=False,
 ):
     from tqdm.auto import trange
 
     for i in trange(bracket_idx.shape[0]):
         start, end = bracket_idx[i]
-        line_frames = mmw_frames[start:end, 1].transpose(2, 1, 0, 3, 4)
+        line_frames = mmw_frames[start:end, chirp_idx].transpose(2, 1, 0, 3, 4)
         if next_line_reverse and (i % 2 == 1):
             all_frames[rx_idx, :, i] = line_frames[::-1]
         else:
@@ -264,6 +269,7 @@ def check_data_idx(input_dir: Path):
 def turn_frame(input_dir: Path, cfg: schemas.MMWConfig):
     adc_samples_num = cfg.mimo.profile.numAdcSamples  # number of ADC samples per chirp
     chrips_num = cfg.mimo.frame.numLoops  # number of chrips per frame
+    chrip_idx = min(1, chrips_num - 1)
     _logger.info(f"chrips_num: {chrips_num}")
     frame_periodicity = cfg.mimo.frame.framePeriodicity  # stampe frame time in ms
     _logger.info(f"frame_periodicity: {frame_periodicity}")
@@ -286,7 +292,7 @@ def turn_frame(input_dir: Path, cfg: schemas.MMWConfig):
 
     def ithread(device_name):
         mmw_frame = MMWFrame(bin_files_path, adc_samples_num, chrips_num, data_idx)
-        turn_device_frame(all_mmw_array, mmw_frame, rx_tabel[device_name], bracket_idx, next_line_reverse)
+        turn_device_frame(all_mmw_array, mmw_frame, rx_tabel[device_name], chrip_idx, bracket_idx, next_line_reverse)
 
     with ThreadPoolExecutor() as executor:
         for device_name in ["master", "slave1", "slave2", "slave3"]:
