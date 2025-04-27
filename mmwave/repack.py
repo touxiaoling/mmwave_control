@@ -290,7 +290,14 @@ def turn_frame(input_dir: Path, cfg: schemas.MMWConfig):
     data_idx = get_data_idx(idxs_path, offset_time, frame_periodicity)
     _logger.info(f"record time:{data_idx[-1] * frame_periodicity / 1000}s")
 
+    # for device_name in ["master", "slave1", "slave2", "slave3"]:
+    #     bin_files_path, idxs_path = get_data_files_path(input_dir, device_name)
+    #     data_idx = get_data_idx(idxs_path, offset_time, frame_periodicity)
+    #     mmw_frame = MMWFrame(bin_files_path, adc_samples_num, chrips_num, data_idx)
+    #     turn_device_frame(all_mmw_array, mmw_frame, rx_tabel[device_name], chrip_idx, bracket_idx, next_line_reverse)
+
     def ithread(device_name):
+        bin_files_path, idxs_path = get_data_files_path(input_dir, device_name)
         mmw_frame = MMWFrame(bin_files_path, adc_samples_num, chrips_num, data_idx)
         turn_device_frame(all_mmw_array, mmw_frame, rx_tabel[device_name], chrip_idx, bracket_idx, next_line_reverse)
 
