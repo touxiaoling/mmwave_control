@@ -9,19 +9,17 @@ pad = partial(np.pad, mode="constant", constant_values=0)
 
 def align_matrix(a: np.ndarray, b: np.ndarray):
     """Align two matrix by padding zeros."""
-    pl = b.shape[0] - a.shape[0]
-    pad_width = np.array(((pl // 2, pl - pl // 2), (0, 0)))
-    if pl > 0:
-        a = pad(a, pad_width)
-    else:
-        b = pad(b, -pad_width)
+    pad = partial(np.pad, mode="constant", constant_values=0)
+    mshape = len(a.shape)
+    for axis in range(mshape):
+        pl = b.shape[axis] - a.shape[axis]
+        pad_width = np.zeros((mshape, 2), dtype=int)
+        pad_width[axis] += np.asarray((pl // 2, pl - pl // 2))
+        if pl > 0:
+            a = pad(a, pad_width)
+        else:
+            b = pad(b, -pad_width)
 
-    pl = b.shape[1] - a.shape[1]
-    pad_width = np.array(((0, 0), (pl // 2, pl - pl // 2)))
-    if pl > 0:
-        a = pad(a, pad_width)
-    else:
-        b = pad(b, -pad_width)
     return a, b
 
 
