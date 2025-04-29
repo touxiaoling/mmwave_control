@@ -8,7 +8,7 @@ pad = partial(np.pad, mode="constant", constant_values=0)
 
 
 def align_matrix(a: np.ndarray, b: np.ndarray):
-    """Align two matrix by padding zeros."""
+    """Align two matrix to same shape by padding zeros."""
     pad = partial(np.pad, mode="constant", constant_values=0)
     mshape = len(a.shape)
     pad_width = np.zeros((mshape, 2), dtype=int)
