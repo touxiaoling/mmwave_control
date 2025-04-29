@@ -14,14 +14,23 @@ def subprocess_popen(cmd):
     start_cmd.extend(cmd)
     with subprocess.Popen(start_cmd, stdout=PIPE, stderr=PIPE, bufsize=0) as process:
         while True:
-            line = process.stdout.readline().decode().strip()
-            if not line and process.poll() is not None:
+            stdout_line = process.stdout.readline().decode().strip()
+            stderr_line = process.stderr.readline().decode().strip()
+
+            if stdout_line:
+                yield stdout_line
+            if stderr_line:
+                yield stderr_line
+
+            if not stdout_line and not stderr_line and process.poll() is not None:
                 break
-            yield line
+
         process.stdout.close()
+        process.stderr.close()
         return_code = process.wait()
+
         if return_code != 0:
-            raise IOError(f"command return code {return_code},error info:\n{process.stderr.readlines()}")
+            raise IOError(f"command return code {return_code}, error info:\n{stderr_line}")
 
 
 def retry(times=3, delay=1):
