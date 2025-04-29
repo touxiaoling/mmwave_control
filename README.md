@@ -35,7 +35,7 @@ pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/si
 
 ## win下挂载ext4磁盘
 ### 通过wsl2
-#！注意： 需要知道安装好wsl2，再通过这个方法挂载
+#！注意： 需要安装好wsl2，再通过这个方法挂载
 
 首先进入powershell管理员
 ```shell
