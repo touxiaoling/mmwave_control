@@ -1,64 +1,108 @@
 # mmwave_control
 
-This is an active millimeter-wave scanning framework code, which is still under development.
+毫米波雷达（mmWave）SAR 扫描控制框架，用于联动 TI 4-chip cascade EVM 雷达与 FMC4030 三轴运动控制器，实现自动化采集与成像流程。
 
-# project install
-## linux or macos
+> 项目仍在持续迭代中。
+
+## 功能概览
+
+- 雷达采集控制：支持通过 `MMWaveCmd` / `MMWave` 启停与采集。
+- 运动控制：封装 FMC4030 控制接口，支持扫描路径执行。
+- 数据重组：将原始雷达二进制数据重组为 numpy 数组。
+- 成像处理：提供 RMA（Range Migration Algorithm）成像流程。
+
+## 环境要求
+
+- Python `3.13.x`（项目当前固定）
+- 推荐使用 `uv` 进行依赖管理
+
+## 安装
+
+### Linux / macOS
 
 ```bash
-#install uv for package manage
+# 安装 uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
-# sync package
-uv sync 
-```
-## windows
-```bash
-#install uv use win-get
-winget install --id=astral-sh.uv  -e
+
+# 安装依赖
 uv sync
 ```
-# run
-1. `start_frame.ipynb`文件是用于扫描物体生成原始数据的
-2. `rma.ipynb` 一个简单的rma算法，用于从原始数据计算出平面图像
-3. `phase_correct.ipynb` 是用于纠正毫米波雷达不同通道的相位差
 
-# References and dependencies:
+### Windows
 
-•	https://github.com/azinke/mmwave  
-•	https://github.com/azinke/mmwave-repack
+```powershell
+# 安装 uv
+winget install --id=astral-sh.uv -e
 
-# tips
-## 更换清华源
+# 安装依赖
+uv sync
+```
+
+## 快速开始
+
+### 1) 采集与预处理（Notebook）
+
+- `start_frame.ipynb`：基础扫描采集流程。
+- `start_frame2.ipynb`：扩展版本采集流程。
+- `start_frame_handshake.ipynb`：包含抖动扫描相关流程的采集版本。
+- `phase_correct.ipynb`：通道相位校正。
+- `rma.ipynb`：基于采集数据进行 RMA 成像演示。
+
+### 2) 命令行工具
+
 ```bash
-pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+# 运行主程序（若使用）
+uv run main.py
+
+# 将原始数据重组为 numpy 数组
+uv run repack <data_dir>
+
+# 对数据执行 RMA 成像
+uv run rma <data_dir>
 ```
 
-## win下挂载ext4磁盘
-### 通过wsl2
-#！注意： 需要安装好wsl2，再通过这个方法挂载
+## 项目结构
 
-首先进入powershell管理员
-```shell
-wmic diskdrive list brief #显示所有磁盘
-wsl --mount \\.\PHYSICALDRIVE2 #注意 \\.\PHYSICALDRIVE2 应替换成实际对应磁盘的路径
+```text
+mmwave/
+├── config.py               预设雷达配置
+├── schemas.py              Pydantic 配置模型
+├── mmwave.py               雷达控制核心
+├── repack.py               原始数据重组
+├── rma.py                  RMA 成像算法
+├── util.py                 通用工具
+└── fmc4030/
+    ├── fmc4030lib.py       ctypes 底层绑定
+    ├── fmc4030.py          高级控制接口
+    ├── bracket.py          扫描支架控制
+    └── util.py             调用间隔控制（min_delay）
 ```
 
-然后进入wsl2
-```shell
-sudo fdisk -l #显示所有磁盘
-sudo mount /dev/sdg1 /mnt/mmw #注意设备应该替换成实际设备
-rsync -avP /mnt/mmw/need_dir /to_dir #拷贝文件
-sudo umount /mnt/mmw #wsl2下取消挂载
+## 平台说明
+
+- Linux / Windows：使用 `mmwave/fmc4030/lib/` 下的原生动态库。
+- macOS：使用 `MacTestLib` 模拟对象（仅用于本地开发调试，不控制真实硬件）。
+
+## 常见问题（FMC4030）
+
+1. `FMC4030_Get_Axis_Current_Pos` 首次调用正常，后续调用其他函数可能卡死并返回 `-6`；`FMC4030_Get_Axis_Current_Speed` 暂未观察到同类问题。
+2. `FMC4030_Get_Machine_Status` 返回过 `664`，该返回码不在说明书列表中，但状态结构体内容可用。
+3. 任意两次函数调用间隔小于 `1ms` 时，第二次调用大概率无响应。项目通过 `@min_delay()` 装饰器做了全局缓解。
+
+## 实用命令
+
+```bash
+# 代码格式化
+uv run ruff format .
+
+# 代码检查
+uv run ruff check .
+
+# 清理 notebook 输出
+bash clear_ipynb.sh
 ```
-然后再回到powershell管理员
 
-```shell
-wsl --unmount \\.\PHYSICALDRIVE2 #取消挂载磁盘
-```
+## 参考项目
 
-# fmc4030 control issue
-
-1. `FMC4030_Get_Axis_Current_Pos`函数第一次调用会返回正确位置，然后接下来调用任何函数都会卡死（如FMC4030_Jog_Single_Axis），返回错误码-6。作为对比 `FMC4030_Get_Axis_Current_Speed`函数没有发现同样的问题。
-2. `FMC4030_Get_Machine_Status`函数调用后返回代码664，该代码不在说明书的返回值列表里，但返回的状态信息正常。
-3. 两个任意函数调用时间间隔小于1ms时，第二次函数调用大概率不会响应。
-
+- https://github.com/azinke/mmwave
+- https://github.com/azinke/mmwave-repack

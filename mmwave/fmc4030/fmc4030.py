@@ -168,7 +168,7 @@ class FMC4030:
         self.connected = True
 
     @util.min_delay()
-    def close_device(self) -> bool:
+    def close_device(self):
         if self.connected:
             flib.close_device(self.id)
             self.connected = False
@@ -226,7 +226,7 @@ class FMC4030:
 
     @validate_call
     @util.min_delay()
-    def home_single_axis(self, axis: int, speed: float, acc_dec: float, fall_step: float, dir: int) -> bool:
+    def home_single_axis(self, axis: int, speed: float, acc_dec: float, fall_step: float, dir: int):
         """
         Speed:回零速度，正数，单位 mm/s
         AccDec:回零加减速度，正数，单位 mm/s²
@@ -284,7 +284,7 @@ class FMC4030:
     @validate_call
     @util.min_delay()
     def write_data_to_485(self, data: str):
-        data = data.encode("utf-8")
+        data: bytes = data.encode("utf-8")
         length = len(data)
         flib.write_data_to_485(self.id, data, length)
 
